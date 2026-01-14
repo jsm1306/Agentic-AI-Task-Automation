@@ -5,8 +5,14 @@ from agents.self_correct_agent import self_correct_agent
 from agents.academic_agent import academic_agent
 
 task1 = Task(
-    description="Using my subject content, generate a 5-day study plan for Object Detection",
-    expected_output="Clear 5-day study plan",
+    description="Generate detailed study notes for Day 1 of Object Detection.",
+    expected_output="Clear notes for Day 1",
+    agent=academic_agent
+)
+
+task2 = Task(
+    description="Take the notes from the previous task and save them using the Save Notes tool. Then, use the Update Progress tool to mark 'Day 1 completed'.",
+    expected_output="Notes saved and progress updated",
     agent=academic_agent
 )
 # task2 = Task(
@@ -16,7 +22,7 @@ task1 = Task(
 # )
 crew = Crew(
     agents=[academic_agent],
-    tasks=[task1],
+    tasks=[task1,task2],
     max_rpm=1,
     process="sequential",
     verbose=False
