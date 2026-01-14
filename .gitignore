@@ -1,3 +1,5 @@
 agentenv/
 .env
 .history
+agents/__pycache__/
+tools/__pycache__/
