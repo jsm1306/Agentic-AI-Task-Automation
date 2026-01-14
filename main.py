@@ -1,17 +1,20 @@
 from crewai import Task, Crew
-from agents.file_agent import file_agent
+from agents.memory_agent import memory_agent
 
 task = Task(
-    description="Write a short note about AI agents and save it to notes",
-    expected_output="Confirmation that the note was saved",
-    agent=file_agent
+    description="Recall everything you remember",
+    expected_output="List of stored memories",
+    agent=memory_agent
 )
 
 crew = Crew(
-    agents=[file_agent],
+    agents=[memory_agent],
     tasks=[task],
-    max_rpm=1   # extremely safe
+    max_rpm=1,
+    process="sequential",
+    verbose=False
 )
+
 
 result = crew.kickoff()
 print(result)
