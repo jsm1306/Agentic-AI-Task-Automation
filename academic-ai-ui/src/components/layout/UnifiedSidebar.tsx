@@ -6,6 +6,22 @@ import { ChatSession as ChatSessionComponent } from '../ui/ChatSession';
 import { ArtifactItem } from '../ui/ArtifactItem';
 import { ChatSession, apiClient } from '../../lib/api';
 
+interface ArtifactItemData {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+  timestamp: string;
+  editable: boolean;
+}
+
+interface ArtifactsData {
+  studyPlans: ArtifactItemData[];
+  notes: ArtifactItemData[];
+  progress: ArtifactItemData[];
+  memory: ArtifactItemData[];
+}
+
 const mockSessions = [
   { id: '1', title: 'Object Detection Basics', timestamp: new Date(Date.now() - 1000 * 60 * 30), active: true }, // 30 min ago
   { id: '2', title: 'CNN Architecture Discussion', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), active: false }, // 2 hours ago
@@ -53,19 +69,33 @@ interface UnifiedSidebarProps {
   onToggleCollapse: () => void;
   currentSession: ChatSession | null;
   onSessionSelect: (session: ChatSession | null) => void;
+  artifactsRefreshTrigger?: number;
 }
 
-export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onToggleCollapse, currentSession, onSessionSelect }) => {
+export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onToggleCollapse, currentSession, onSessionSelect, artifactsRefreshTrigger }) => {
   const [activeTab, setActiveTab] = useState<'chat' | 'artifacts'>('chat');
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedGroups, setExpandedGroups] = useState({ today: true, thisWeek: true, older: false });
   const [artifactsTab, setArtifactsTab] = useState<'studyPlans' | 'notes' | 'progress' | 'memory'>('studyPlans');
+  const [artifacts, setArtifacts] = useState<ArtifactsData>(mockArtifacts);
 
   useEffect(() => {
     loadSessions();
   }, []);
+
+  useEffect(() => {
+    if (currentSession) {
+      loadArtifacts(currentSession.id);
+    }
+  }, [currentSession]);
+
+  useEffect(() => {
+    if (currentSession && artifactsRefreshTrigger && artifactsRefreshTrigger > 0) {
+      loadArtifacts(currentSession.id);
+    }
+  }, [artifactsRefreshTrigger, currentSession]);
 
   const loadSessions = async () => {
     try {
@@ -78,9 +108,91 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
     }
   };
 
+  const handleDeleteArtifact = async (artifactId: string) => {
+    // For now, just remove from local state
+    // In a real implementation, this would call a backend API
+    setArtifacts(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(key => {
+        updated[key as keyof ArtifactsData] = updated[key as keyof ArtifactsData].filter(
+          artifact => artifact.id !== artifactId
+        );
+      });
+      return updated;
+    });
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!confirm('Are you sure you want to delete this session and all its data?')) {
+      return;
+    }
+
+    try {
+      await apiClient.deleteSession(sessionId);
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      
+      // If the deleted session was active, clear the current session
+      if (currentSession?.id === sessionId) {
+        onSessionSelect(null);
+        setArtifacts(mockArtifacts); // Reset to mock data
+      }
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+      alert('Failed to delete session. Please try again.');
+    }
+  };
+
+  const loadArtifacts = async (sessionId: string) => {
+    try {
+      const artifactData = await apiClient.getArtifacts(sessionId);
+      // Transform backend artifact format to frontend format
+      setArtifacts({
+        studyPlans: artifactData.study_plans?.map((plan: any, index: number) => ({
+          id: plan.id || `plan_${index}`,
+          title: plan.title || 'Study Plan',
+          content: plan.content || '',
+          type: 'study-plan',
+          timestamp: plan.timestamp || new Date().toISOString(),
+          editable: true
+        })) || [],
+        notes: artifactData.notes?.map((note: any, index: number) => ({
+          id: note.id || `note_${index}`,
+          title: note.title || 'Notes',
+          content: note.content || '',
+          type: 'notes',
+          timestamp: note.timestamp || new Date().toISOString(),
+          editable: true
+        })) || [],
+        progress: artifactData.progress?.map((prog: any, index: number) => ({
+          id: prog.id || `progress_${index}`,
+          title: prog.title || 'Progress Update',
+          content: prog.content || '',
+          type: 'progress',
+          timestamp: prog.timestamp || new Date().toISOString(),
+          editable: false
+        })) || [],
+        memory: artifactData.memory ? [{
+          id: 'memory_1',
+          title: 'Session Memory',
+          content: typeof artifactData.memory === 'object' ? JSON.stringify(artifactData.memory, null, 2) : artifactData.memory,
+          type: 'memory',
+          timestamp: new Date().toISOString(),
+          editable: false
+        }] : []
+      });
+    } catch (error) {
+      console.error('Failed to load artifacts:', error);
+      // Keep mock data as fallback
+      setArtifacts(mockArtifacts);
+    }
+  };
+
   const handleNewSession = async () => {
     try {
-      const newSession = await apiClient.createSession({ title: 'New Academic Session' });
+      const newSession = await apiClient.createSession({ 
+        title: 'New Academic Session',
+        subject: 'General Academic Study'
+      });
       setSessions(prev => [newSession, ...prev]);
       onSessionSelect(newSession);
     } catch (error) {
@@ -145,7 +257,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
   }
 
   return (
-    <div className="bg-black/60 backdrop-blur-md border-r border-cyan-500/20 flex flex-col">
+    <div className="bg-black/60 backdrop-blur-md border-r border-cyan-500/20 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-cyan-500/20">
         <div className="flex items-center justify-between mb-4">
@@ -236,6 +348,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                             key={session.id}
                             {...session}
                             onClick={() => onSessionSelect(session)}
+                            onDelete={() => handleDeleteSession(session.id)}
                             isActive={currentSession?.id === session.id}
                           />
                         ))}
@@ -250,30 +363,39 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
           <div className="h-full flex flex-col">
             {/* Artifacts Tabs */}
             <div className="p-4 border-b border-violet-500/20">
-              <div className="flex gap-1">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setArtifactsTab(tab.key)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      artifactsTab === tab.key
-                        ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
-                        : 'text-zinc-400 hover:text-zinc-300'
-                    }`}
-                  >
-                    <tab.icon className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                ))}
+              <div className="flex overflow-x-auto scrollbar-hide gap-1 pb-2">
+                <div className="flex gap-1 min-w-max">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setArtifactsTab(tab.key)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                        artifactsTab === tab.key
+                          ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                          : 'text-zinc-400 hover:text-zinc-300'
+                      }`}
+                    >
+                      <tab.icon className="w-4 h-4" />
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Artifacts Content */}
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-3">
-                {mockArtifacts[artifactsTab].map((artifact) => (
-                  <ArtifactItem key={artifact.id} {...artifact} />
-                ))}
+                {artifacts[artifactsTab].length === 0 ? (
+                  <div className="text-center text-zinc-500 py-8">
+                    <p>No {artifactsTab} available</p>
+                    <p className="text-sm mt-1">Create some content to see it here</p>
+                  </div>
+                ) : (
+                  artifacts[artifactsTab].map((artifact) => (
+                    <ArtifactItem key={artifact.id} {...artifact} onDelete={handleDeleteArtifact} />
+                  ))
+                )}
               </div>
             </div>
           </div>

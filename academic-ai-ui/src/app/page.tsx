@@ -11,6 +11,7 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+  const [artifactsRefreshTrigger, setArtifactsRefreshTrigger] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -60,6 +61,10 @@ export default function Home() {
     }
   };
 
+  const handleArtifactsChanged = () => {
+    setArtifactsRefreshTrigger(prev => prev + 1);
+  };
+
   return (
     <div className="h-screen bg-black text-white overflow-hidden relative" ref={containerRef}>
       {/* Faint grid texture */}
@@ -67,13 +72,14 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,255,255,0.15)_1px,transparent_0)] bg-[length:20px_20px]"></div>
       </div>
       <TopBar />
-      <div className="flex h-[calc(100vh-80px)] relative">
+      <div className="flex h-[calc(100vh-80px)] relative min-h-0">
         <div style={{ width: `${sidebarWidth}px` }}>
           <UnifiedSidebar
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebarCollapse}
             currentSession={currentSession}
             onSessionSelect={setCurrentSession}
+            artifactsRefreshTrigger={artifactsRefreshTrigger}
           />
         </div>
         {/* Resizable divider */}
@@ -85,8 +91,8 @@ export default function Home() {
         >
           <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-0.5 bg-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
         </div>
-        <div className="flex-1">
-          <MainPlayground session={currentSession} />
+        <div className="flex-1 min-w-0">
+          <MainPlayground session={currentSession} onArtifactsChanged={handleArtifactsChanged} />
         </div>
       </div>
     </div>

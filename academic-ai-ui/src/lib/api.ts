@@ -45,9 +45,17 @@ export interface AgentAction {
   details?: any;
 }
 
+export interface ArtifactResponse {
+  session_id: string;
+  study_plans: any[];
+  notes: any[];
+  progress: any[];
+  memory: any;
+}
+
 export interface CreateSessionRequest {
-  title: string;
-  subject?: string;
+  title?: string;
+  subject: string;
 }
 
 class ApiClient {
@@ -98,6 +106,12 @@ class ApiClient {
     });
   }
 
+  async deleteSession(sessionId: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/session/${sessionId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Chat functionality
   async sendMessage(data: ChatRequest): Promise<ChatResponse> {
     return this.request<ChatResponse>('/chat', {
@@ -107,7 +121,7 @@ class ApiClient {
   }
 
   // Artifacts
-  async getArtifacts(sessionId: string) {
+  async getArtifacts(sessionId: string): Promise<ArtifactResponse> {
     return this.request(`/artifacts/${sessionId}`);
   }
 

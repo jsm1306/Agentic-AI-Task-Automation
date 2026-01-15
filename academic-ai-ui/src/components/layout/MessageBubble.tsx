@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pin, User, Bot } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface MessageBubbleProps {
   id: string;
@@ -37,7 +38,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-100'
           }`}
         >
-          <div className="whitespace-pre-wrap">{content}</div>
+          {isUser ? (
+            <div className="whitespace-pre-wrap">{content}</div>
+          ) : (
+            <div className="prose prose-invert prose-sm max-w-none prose-headings:text-cyan-300 prose-strong:text-cyan-200 prose-code:text-cyan-100 prose-code:bg-zinc-800/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-zinc-600">
+              <ReactMarkdown>
+                {content}
+              </ReactMarkdown>
+            </div>
+          )}
           {tools && tools.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {tools.map((tool, index) => (

@@ -1,13 +1,14 @@
 import React from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Trash2 } from 'lucide-react';
 import { ChatSession as ChatSessionType } from '../../lib/api';
 
 interface ChatSessionProps extends ChatSessionType {
   onClick?: () => void;
+  onDelete?: () => void;
   isActive?: boolean;
 }
 
-export const ChatSession: React.FC<ChatSessionProps> = ({ title, created_at, onClick, isActive = false }) => {
+export const ChatSession: React.FC<ChatSessionProps> = ({ title, created_at, onClick, onDelete, isActive = false }) => {
   const formatTimestamp = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -25,7 +26,7 @@ export const ChatSession: React.FC<ChatSessionProps> = ({ title, created_at, onC
   return (
     <div
       onClick={onClick}
-      className={`p-3 rounded-lg cursor-pointer transition-all duration-300 mb-2 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/20 ${
+      className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 mb-2 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/20 ${
         isActive
           ? 'bg-cyan-500/20 border border-cyan-500/40 shadow-lg shadow-cyan-500/20'
           : 'bg-black/40 border border-transparent hover:bg-cyan-500/10 hover:border-cyan-500/30'
@@ -37,6 +38,17 @@ export const ChatSession: React.FC<ChatSessionProps> = ({ title, created_at, onC
           <h3 className="text-white text-sm font-medium truncate">{title}</h3>
           <p className="text-zinc-400 text-xs">{formatTimestamp(created_at)}</p>
         </div>
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="p-1 text-zinc-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
       </div>
     </div>
   );

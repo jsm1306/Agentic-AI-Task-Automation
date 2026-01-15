@@ -1,0 +1,40 @@
+Why Do We Need SIFT?
+In real-world images:
+Objects appear at different sizes
+Objects may rotate
+Illumination conditions vary
+Problem:Pixel-based comparison fails.
+Solution:Extract stable, local features.
+Dr. Madhu Oruganti (AI & DS) Scale-Invariant Feature Transform (SIFT) January 5, 2026 2 / 20
+
+What is SIFT?
+SIFT is a feature extraction algorithm that:
+Detects distinctive local keypoints
+Describes them using robust descriptors
+Is invariant to scale and rotation
+Output:
+Keypoints (location, scale, orientation)
+128-dimensional descriptors
+Dr. Madhu Oruganti (AI & DS) Scale-Invariant Feature Transform (SIFT) January 5, 2026 3 / 20
+
+SIFT Pipeline
+1 Scale-space construction
+2 Difference of Gaussian (DoG)
+3 Keypoint localization
+4 Orientation assignment
+5 Descriptor construction
+Dr. Madhu Oruganti (AI & DS) Scale-Invariant Feature Transform (SIFT) January 5, 2026 4 / 20
+
+Scale-Space: Concept
+Objects appear at different sizes due to distance.
+Idea:Detect features at multiple scales so size changes do not affect
+detection.
+Dr. Madhu Oruganti (AI & DS) Scale-Invariant Feature Transform (SIFT) January 5, 2026 5 / 20
+
+Scale-Space: Mathematical Formulation
+L(x,y, σ) =G(x,y, σ)∗I(x,y)
+Where:
+I(x,y) – input image
+G(x,y, σ) – Gaussian filter
+σ– scale parameter
+Dr. Madhu Oruganti (AI & DS) Scale-Invariant Feature Transform (SIFT) January 5, 2026 6 / 20

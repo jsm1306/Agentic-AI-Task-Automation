@@ -1,0 +1,22 @@
+{
+  "subjects": {
+    "ObjectDetection": {
+      "progress": [
+        "Day 1 planned"
+      ],
+      "last_updated": "2024-01-15T00:00:00"
+    },
+    "General Academic Study": {
+      "YOLO Definition": "YOLO (You Only Look Once) is a state-of-the-art, real-time object detection system that uses a single neural network to predict bounding boxes and class probabilities directly from full images in one evaluation. It frames object detection as a regression problem, offering high speed and accuracy.",
+      "last_updated": "2026-01-15T15:39:01.258655"
+    }
+  },
+  "global_memory": {
+    "history": [
+      "I am building an autonomous AI agent project",
+      "FAILURE: Web search returned empty results.",
+      "FAILURE: Search tool returned empty result",
+      "RECOVERY PLAN: Try alternative strategy for: Failure recorded"
+    ]
+  }
+}

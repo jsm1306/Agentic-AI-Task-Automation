@@ -1,0 +1,5 @@
+CO1: Introduction to Object Detection: Overview of Computer Vision and Image Processing, Basics of Object Detection, Historical Context and Evolution, Applications of Object Detection
+CO2: Classical Object Detection Techniques: Feature Extraction (SIFT, SURF, HOG), Sliding Window Approach, Region-based Methods (Selective Search), DPM (Deformable Part-based Models)
+CO3: Deep Learning for Object Detection: Convolutional Neural Networks (CNNs), Region- based CNN (R-CNN), Fast R-CNN and Faster R-CNN, Single Shot Detectors (SSD), You Only Look Once (YOLO)
+CO4: Advanced Deep Learning Models: Mask R-CNN, RetinaNet, EfficientDet, CenterNet, Recent Advancements and State- ofthe-Art Models
+COS5: Build and optimize robust object detection models through effective dataset preparation, data augmentation, training strategies, evaluation metrics (mAP, precision, recall), and error analysis techniques.

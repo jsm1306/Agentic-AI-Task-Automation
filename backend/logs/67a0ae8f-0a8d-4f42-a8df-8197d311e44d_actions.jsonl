@@ -1,0 +1,5 @@
+{"timestamp": "2026-01-15T15:56:01.508448", "action": "TOOL_USED", "details": {"tool": "Load Academic Content", "parameters": {"query": "CO1 Object Detection"}}, "session_id": "67a0ae8f-0a8d-4f42-a8df-8197d311e44d"}
+{"timestamp": "2026-01-15T15:56:03.082061", "action": "TOOL_USED", "details": {"tool": "Search Academic Resources", "parameters": {"query": "Object Detection fundamental concepts"}}, "session_id": "67a0ae8f-0a8d-4f42-a8df-8197d311e44d"}
+{"timestamp": "2026-01-15T15:56:03.085878", "action": "SEARCH_PERFORMED", "details": {"query": "Object Detection fundamental concepts", "results_count": 0}, "session_id": "67a0ae8f-0a8d-4f42-a8df-8197d311e44d"}
+{"timestamp": "2026-01-15T15:56:10.000918", "action": "TOOL_USED", "details": {"tool": "Save Notes", "parameters": {"title": "CO1 Object Detection Notes"}}, "session_id": "67a0ae8f-0a8d-4f42-a8df-8197d311e44d"}
+{"timestamp": "2026-01-15T15:56:10.011771", "action": "CONTENT_GENERATED", "details": {"type": "notes", "content_preview": "## CO1 Object Detection: Fundamental Concepts\n\n### 1. Definition\nObject detection is a computer visi..."}, "session_id": "67a0ae8f-0a8d-4f42-a8df-8197d311e44d"}

@@ -49,13 +49,14 @@ const placeholders = [
   "Plan your study schedule..."
 ];
 
-export const MainPlayground: React.FC<{ session: ChatSession | null }> = ({ session }) => {
+export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifactsChanged?: () => void }> = ({ session, onArtifactsChanged }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [agentActions, setAgentActions] = useState<any[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load messages from session
@@ -67,12 +68,10 @@ export const MainPlayground: React.FC<{ session: ChatSession | null }> = ({ sess
     }
   }, [session]);
 
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPlaceholder((prev) => (prev + 1) % placeholders.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || !session) return;
@@ -108,7 +107,19 @@ export const MainPlayground: React.FC<{ session: ChatSession | null }> = ({ sess
 
       // Update agent actions for activity stream
       if (response.agent_actions) {
-        setAgentActions(prev => [...prev, ...response.agent_actions]);
+        const mappedActions = response.agent_actions.map((action, index) => ({
+          id: `${Date.now()}-${index}`,
+          agent: 'Academic Assistant',
+          action: action.action,
+          timestamp: action.timestamp,
+          details: action.details ? JSON.stringify(action.details) : undefined
+        }));
+        setAgentActions(prev => [...prev, ...mappedActions]);
+      }
+
+      // Notify that artifacts might have changed (notes, study plans, etc.)
+      if (onArtifactsChanged) {
+        onArtifactsChanged();
       }
 
     } catch (error) {
@@ -141,9 +152,9 @@ export const MainPlayground: React.FC<{ session: ChatSession | null }> = ({ sess
   const pinnedMessages = messages.filter(msg => msg.pinned);
 
   return (
-    <div className="flex-1 flex flex-col bg-black/40 backdrop-blur-md">
+    <div className="flex-1 flex flex-col bg-black/40 backdrop-blur-md h-full">
       {pinnedMessages.length > 0 && <PinnedMessages messages={pinnedMessages} onUnpin={togglePin} />}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
         {messages.filter(msg => !msg.pinned).map((message, index) => (
           <MessageBubble
             key={index}
@@ -157,6 +168,7 @@ export const MainPlayground: React.FC<{ session: ChatSession | null }> = ({ sess
           />
         ))}
         {isTyping && <TypingIndicator />}
+        <div ref={messagesEndRef} />
       </div>
       <AgentActivity actions={agentActions} />
       <div className="p-4 border-t border-cyan-500/20">

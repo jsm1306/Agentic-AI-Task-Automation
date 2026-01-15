@@ -1,0 +1,42 @@
+# Academic AI Assistant Backend Dependencies
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# AI/ML
+crewai==1.8.0
+google-generativeai==0.8.6
+openai==1.3.0  # For potential future use
+
+# Data Processing
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# HTTP Client
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Environment Management
+python-dotenv==1.0.0
+
+# File Operations
+pathlib2==2.3.7
+
+# Caching
+diskcache==5.6.3
+
+# Logging
+coloredlogs==15.0.1
+
+# Utilities
+typing-extensions==4.8.0
+asyncio-mqtt==0.16.1  # For potential future features
+
+# Testing (optional)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# Development
+black==23.11.0
+isort==5.12.0
