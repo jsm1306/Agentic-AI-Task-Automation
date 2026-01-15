@@ -5,6 +5,9 @@ import { Plus, MessageSquare, Search, ChevronDown, ChevronUp, BookOpen, FileText
 import { ChatSession as ChatSessionComponent } from '../ui/ChatSession';
 import { ArtifactItem } from '../ui/ArtifactItem';
 import { ChatSession, apiClient } from '../../lib/api';
+import { useToast } from '../ui/Toast';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
+import { useSubject } from '../context/SubjectContext';
 
 interface ArtifactItemData {
   id: string;
@@ -13,6 +16,8 @@ interface ArtifactItemData {
   type: string;
   timestamp: string;
   editable: boolean;
+  sessionTitle?: string;
+  sessionId?: string;
 }
 
 interface ArtifactsData {
@@ -74,28 +79,31 @@ interface UnifiedSidebarProps {
 
 export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onToggleCollapse, currentSession, onSessionSelect, artifactsRefreshTrigger }) => {
   const [activeTab, setActiveTab] = useState<'chat' | 'artifacts'>('chat');
+  const [artifactsTab, setArtifactsTab] = useState<'session' | 'global' | 'studyPlans' | 'notes' | 'progress' | 'memory'>('session');
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedGroups, setExpandedGroups] = useState({ today: true, thisWeek: true, older: false });
-  const [artifactsTab, setArtifactsTab] = useState<'studyPlans' | 'notes' | 'progress' | 'memory'>('studyPlans');
   const [artifacts, setArtifacts] = useState<ArtifactsData>(mockArtifacts);
+  const [globalArtifacts, setGlobalArtifacts] = useState<ArtifactsData>(mockArtifacts);
+  const [hasLoadedGlobal, setHasLoadedGlobal] = useState(false);
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     loadSessions();
   }, []);
 
   useEffect(() => {
-    if (currentSession) {
-      loadArtifacts(currentSession.id);
+    if (artifactsTab === 'global' && !hasLoadedGlobal) {
+      loadGlobalArtifacts();
     }
-  }, [currentSession]);
-
-  useEffect(() => {
-    if (currentSession && artifactsRefreshTrigger && artifactsRefreshTrigger > 0) {
-      loadArtifacts(currentSession.id);
-    }
-  }, [artifactsRefreshTrigger, currentSession]);
+  }, [artifactsTab, hasLoadedGlobal]);
 
   const loadSessions = async () => {
     try {
@@ -109,37 +117,82 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
   };
 
   const handleDeleteArtifact = async (artifactId: string) => {
-    // For now, just remove from local state
-    // In a real implementation, this would call a backend API
-    setArtifacts(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(key => {
-        updated[key as keyof ArtifactsData] = updated[key as keyof ArtifactsData].filter(
-          artifact => artifact.id !== artifactId
-        );
-      });
-      return updated;
+    setConfirmationDialog({
+      isOpen: true,
+      title: 'Delete Artifact',
+      message: 'Are you sure you want to delete this artifact? This action cannot be undone.',
+      onConfirm: () => {
+        setConfirmationDialog(null);
+        // For now, just remove from local state
+        // In a real implementation, this would call a backend API
+        setArtifacts(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(key => {
+            updated[key as keyof ArtifactsData] = updated[key as keyof ArtifactsData].filter(
+              artifact => artifact.id !== artifactId
+            );
+          });
+          return updated;
+        });
+        
+        // Also remove from global artifacts if it exists there
+        setGlobalArtifacts(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(key => {
+            updated[key as keyof ArtifactsData] = updated[key as keyof ArtifactsData].filter(
+              artifact => artifact.id !== artifactId
+            );
+          });
+          return updated;
+        });
+        
+        // Refresh global artifacts if we're currently viewing global
+        if (artifactsTab === 'global') {
+          loadGlobalArtifacts();
+        }
+        
+        addToast({
+          type: 'success',
+          title: 'Artifact deleted',
+          message: 'The artifact has been successfully deleted from all views.',
+          duration: 4000
+        });
+      }
     });
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    if (!confirm('Are you sure you want to delete this session and all its data?')) {
-      return;
-    }
-
-    try {
-      await apiClient.deleteSession(sessionId);
-      setSessions(prev => prev.filter(s => s.id !== sessionId));
-      
-      // If the deleted session was active, clear the current session
-      if (currentSession?.id === sessionId) {
-        onSessionSelect(null);
-        setArtifacts(mockArtifacts); // Reset to mock data
+    setConfirmationDialog({
+      isOpen: true,
+      title: 'Delete Session',
+      message: 'Are you sure you want to delete this session and all its data? This action cannot be undone.',
+      onConfirm: async () => {
+        setConfirmationDialog(null);
+        try {
+          await apiClient.deleteSession(sessionId);
+          setSessions(prev => prev.filter(s => s.id !== sessionId));
+          
+          // If the deleted session was active, clear the current session
+          if (currentSession?.id === sessionId) {
+            onSessionSelect(null);
+            setArtifacts(mockArtifacts); // Reset to mock data
+          }
+          
+          addToast({
+            type: 'success',
+            title: 'Session deleted',
+            message: 'The session has been successfully deleted.'
+          });
+        } catch (error) {
+          console.error('Failed to delete session:', error);
+          addToast({
+            type: 'error',
+            title: 'Failed to delete session',
+            message: 'Please try again.'
+          });
+        }
       }
-    } catch (error) {
-      console.error('Failed to delete session:', error);
-      alert('Failed to delete session. Please try again.');
-    }
+    });
   };
 
   const loadArtifacts = async (sessionId: string) => {
@@ -187,6 +240,56 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
     }
   };
 
+  const loadGlobalArtifacts = async () => {
+    if (hasLoadedGlobal) return; // Don't reload if already loaded
+
+    try {
+      const allArtifacts: ArtifactsData = {
+        studyPlans: [],
+        notes: [],
+        progress: [],
+        memory: []
+      };
+
+      // Load artifacts from all sessions
+      for (const session of sessions) {
+        try {
+          const sessionArtifacts = await apiClient.getArtifacts(session.id);
+          
+          // Add session info to each artifact
+          if (sessionArtifacts.study_plans) {
+            allArtifacts.studyPlans.push(...sessionArtifacts.study_plans.map((plan: any) => ({
+              ...plan,
+              sessionTitle: session.title,
+              sessionId: session.id
+            })));
+          }
+          if (sessionArtifacts.notes) {
+            allArtifacts.notes.push(...sessionArtifacts.notes.map((note: any) => ({
+              ...note,
+              sessionTitle: session.title,
+              sessionId: session.id
+            })));
+          }
+          if (sessionArtifacts.progress) {
+            allArtifacts.progress.push(...sessionArtifacts.progress.map((prog: any) => ({
+              ...prog,
+              sessionTitle: session.title,
+              sessionId: session.id
+            })));
+          }
+        } catch (error) {
+          console.error(`Failed to load artifacts for session ${session.id}:`, error);
+        }
+      }
+
+      setGlobalArtifacts(allArtifacts);
+      setHasLoadedGlobal(true);
+    } catch (error) {
+      console.error('Failed to load global artifacts:', error);
+    }
+  };
+
   const handleNewSession = async () => {
     try {
       const newSession = await apiClient.createSession({ 
@@ -200,7 +303,15 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
     }
   };
 
-  const groupedSessions = useMemo(() => groupSessions(sessions), [sessions]);
+  const { subject } = useSubject();
+
+  const sessionsBySubject = useMemo(() => {
+    if (!subject || subject === 'All Subjects') return sessions;
+    return sessions.filter(s => (s.subject || '').toLowerCase() === subject.toLowerCase());
+  }, [sessions, subject]);
+
+  const groupedSessions = useMemo(() => groupSessions(sessionsBySubject), [sessionsBySubject]);
+
   const filteredSessions = useMemo(() => {
     if (!searchQuery) return groupedSessions;
     const filtered = { ...groupedSessions };
@@ -219,6 +330,8 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
 
 
   const tabs = [
+    { key: 'session' as const, label: 'Session', icon: BookOpen },
+    { key: 'global' as const, label: 'Global', icon: FileText },
     { key: 'studyPlans' as const, label: 'Study Plans', icon: BookOpen },
     { key: 'notes' as const, label: 'Notes', icon: FileText },
     { key: 'progress' as const, label: 'Progress', icon: TrendingUp },
@@ -386,21 +499,176 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
             {/* Artifacts Content */}
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-3">
-                {artifacts[artifactsTab].length === 0 ? (
-                  <div className="text-center text-zinc-500 py-8">
-                    <p>No {artifactsTab} available</p>
-                    <p className="text-sm mt-1">Create some content to see it here</p>
-                  </div>
-                ) : (
-                  artifacts[artifactsTab].map((artifact) => (
-                    <ArtifactItem key={artifact.id} {...artifact} onDelete={handleDeleteArtifact} />
-                  ))
-                )}
+                {(() => {
+                  if (artifactsTab === 'global') {
+                    const currentArtifacts = globalArtifacts;
+                    const hasAnyArtifacts = Object.values(currentArtifacts).some(arr => arr.length > 0);
+                    
+                    if (!hasAnyArtifacts) {
+                      return (
+                        <div className="text-center text-zinc-500 py-8">
+                          <p>No artifacts across all sessions</p>
+                          <p className="text-sm mt-1">Create content in any session to see it here</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        {currentArtifacts.studyPlans.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <BookOpen className="w-4 h-4" />
+                              Study Plans
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.studyPlans.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} sessionTitle={artifact.sessionTitle} sessionId={artifact.sessionId} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {currentArtifacts.notes.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <FileText className="w-4 h-4" />
+                              Notes
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.notes.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} sessionTitle={artifact.sessionTitle} sessionId={artifact.sessionId} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {currentArtifacts.progress.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4" />
+                              Progress
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.progress.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} sessionTitle={artifact.sessionTitle} sessionId={artifact.sessionId} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {currentArtifacts.memory.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <Brain className="w-4 h-4" />
+                              Memory
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.memory.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} sessionTitle={artifact.sessionTitle} sessionId={artifact.sessionId} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  } else if (artifactsTab === 'session') {
+                    const currentArtifacts = artifacts;
+                    const hasAnyArtifacts = Object.values(currentArtifacts).some(arr => arr.length > 0);
+                    
+                    if (!hasAnyArtifacts) {
+                      return (
+                        <div className="text-center text-zinc-500 py-8">
+                          <p>No artifacts in current session</p>
+                          <p className="text-sm mt-1">Select a session or create content to see artifacts</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        {currentArtifacts.studyPlans.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <BookOpen className="w-4 h-4" />
+                              Study Plans
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.studyPlans.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {currentArtifacts.notes.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <FileText className="w-4 h-4" />
+                              Notes
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.notes.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {currentArtifacts.progress.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4" />
+                              Progress
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.progress.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {currentArtifacts.memory.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+                              <Brain className="w-4 h-4" />
+                              Memory
+                            </h3>
+                            <div className="space-y-2">
+                              {currentArtifacts.memory.map((artifact) => (
+                                <ArtifactItem key={artifact.id} {...artifact} onDelete={handleDeleteArtifact} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  } else {
+                    // Individual artifact type tabs (studyPlans, notes, progress, memory)
+                    const artifactList = artifacts[artifactsTab as keyof ArtifactsData] || [];
+                    
+                    if (artifactList.length === 0) {
+                      return (
+                        <div className="text-center text-zinc-500 py-8">
+                          <p>No {artifactsTab} available</p>
+                          <p className="text-sm mt-1">Create some content to see it here</p>
+                        </div>
+                      );
+                    }
+
+                    return artifactList.map((artifact) => (
+                      <ArtifactItem key={artifact.id} {...artifact} onDelete={handleDeleteArtifact} />
+                    ));
+                  }
+                })()}
               </div>
             </div>
           </div>
         )}
       </div>
+
+      <ConfirmationDialog
+        isOpen={confirmationDialog?.isOpen || false}
+        title={confirmationDialog?.title || ''}
+        message={confirmationDialog?.message || ''}
+        onConfirm={confirmationDialog?.onConfirm || (() => {})}
+        onCancel={() => setConfirmationDialog(null)}
+      />
     </div>
   );
 };

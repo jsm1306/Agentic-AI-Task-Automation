@@ -12,9 +12,11 @@ interface ArtifactItemProps {
   timestamp?: string;
   editable?: boolean;
   onDelete?: (id: string) => void;
+  sessionTitle?: string;
+  sessionId?: string;
 }
 
-export const ArtifactItem: React.FC<ArtifactItemProps> = ({ id, title, content, type, timestamp, editable = false, onDelete }) => {
+export const ArtifactItem: React.FC<ArtifactItemProps> = ({ id, title, content, type, timestamp, editable = false, onDelete, sessionTitle, sessionId }) => {
   const [isExpanded, setIsExpanded] = useState(false); // Start collapsed for preview
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
@@ -53,7 +55,7 @@ export const ArtifactItem: React.FC<ArtifactItemProps> = ({ id, title, content, 
   };
 
   const handleDelete = () => {
-    if (onDelete && confirm('Are you sure you want to delete this artifact?')) {
+    if (onDelete) {
       onDelete(id);
     }
   };
@@ -65,8 +67,13 @@ export const ArtifactItem: React.FC<ArtifactItemProps> = ({ id, title, content, 
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-white text-sm font-medium truncate">{title}</h3>
-          <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white text-sm font-medium truncate">{title}</h3>
+            {sessionTitle && (
+              <p className="text-xs text-zinc-500 truncate mt-0.5">From: {sessionTitle}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 ml-2">
             {timestamp && <span className="text-xs text-zinc-400">{timestamp}</span>}
             {isExpanded ? (
               <ChevronUp className="w-4 h-4 text-cyan-400" />
