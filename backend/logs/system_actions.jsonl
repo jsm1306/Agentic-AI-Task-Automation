@@ -181,3 +181,38 @@
 {"timestamp": "2026-01-15T18:08:19.464017", "action": "ERROR", "details": {"message": "Failed to configure Google Generative AI: module 'google.genai' has no attribute 'configure'"}, "session_id": "system"}
 {"timestamp": "2026-01-15T18:08:19.464938", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
 {"timestamp": "2026-01-15T18:08:19.489945", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-15T14:54:30.086368", "action": "INFO", "details": {"message": "Google Generative AI configured successfully (using deprecated package)"}, "session_id": "system"}
+{"timestamp": "2026-01-15T14:54:30.106375", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-15T14:54:30.294598", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-15T14:57:34.434700", "action": "INFO", "details": {"message": "Google Generative AI configured successfully (using deprecated package)"}, "session_id": "system"}
+{"timestamp": "2026-01-15T14:57:34.438601", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-15T14:57:34.614192", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:15:22.213209", "action": "INFO", "details": {"message": "Google Generative AI configured successfully (using deprecated package)"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:15:22.216995", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:15:22.435475", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:34:36.997198", "action": "INFO", "details": {"message": "Google Generative AI configured successfully (using deprecated package)"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:34:37.000855", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:34:37.176316", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:49:16.735600", "action": "INFO", "details": {"message": "Google Generative AI configured successfully (using deprecated package)"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:49:16.746293", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:49:16.966050", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:58:20.107194", "action": "INFO", "details": {"message": "Google Generative AI configured successfully (using deprecated package)"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:58:20.111914", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-15T16:58:20.254879", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-16T10:10:45.994392", "action": "ERROR", "details": {"message": "Failed to configure Google Generative AI: module 'google.genai' has no attribute 'configure'"}, "session_id": "system"}
+{"timestamp": "2026-01-16T10:10:45.995112", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-16T10:10:46.074206", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:37:46.228651", "action": "INFO", "details": {"message": "Google Generative AI configured successfully (using deprecated package)"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:37:46.254065", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:37:46.375389", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:38:33.632708", "action": "ERROR", "details": {"message": "Chat endpoint error: Google Gen AI native provider not available, to install: uv add \"crewai[google-genai]\""}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:48:27.370225", "action": "ERROR", "details": {"message": "Failed to configure Google Generative AI: module 'google.genai' has no attribute 'configure'"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:48:27.376498", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:48:27.471462", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:48:54.563664", "action": "INFO", "details": {"message": "Processing chat request for session e1f01fb0-03fc-4131-baef-8f0f60d87df5"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:48:58.255117", "action": "INFO", "details": {"message": "Saved session: e1f01fb0-03fc-4131-baef-8f0f60d87df5"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:48:58.357678", "action": "INFO", "details": {"message": "Saved session: e1f01fb0-03fc-4131-baef-8f0f60d87df5"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:49:43.616147", "action": "INFO", "details": {"message": "Saved session: f3dd838a-a1c9-4964-b7ac-aeeae8121265"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:49:43.618567", "action": "INFO", "details": {"message": "Created new session: f3dd838a-a1c9-4964-b7ac-aeeae8121265"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:50:00.918361", "action": "INFO", "details": {"message": "Processing chat request for session f3dd838a-a1c9-4964-b7ac-aeeae8121265"}, "session_id": "system"}
+{"timestamp": "2026-01-16T05:50:02.636617", "action": "ERROR", "details": {"message": "Chat endpoint error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 57.874641622s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '57s'}]}}"}, "session_id": "system"}
