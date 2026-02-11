@@ -15,6 +15,7 @@ export const SettingsDrawer: React.FC = () => {
   return (
     <>
       <button
+        suppressHydrationWarning
         onClick={() => setIsOpen(true)}
         className="p-2 bg-black/50 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors"
       >
@@ -39,7 +40,7 @@ export const SettingsDrawer: React.FC = () => {
                 <span className="text-white">Theme</span>
                 <button
                   onClick={toggleTheme}
-                  className="flex items-center gap-2 px-3 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+                  className="flex items-center gap-2 px-2 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors"
                 >
                   {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                   {theme === 'dark' ? 'Dark' : 'Light'}
@@ -48,7 +49,7 @@ export const SettingsDrawer: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-white">Reset Session</span>
-                <button className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors">
+                <button className="flex items-center gap-2 px-2 py-1 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors">
                   <RotateCcw className="w-4 h-4" />
                   Reset
                 </button>
@@ -56,7 +57,7 @@ export const SettingsDrawer: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-white">Clear Memory</span>
-                <button className="flex items-center gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/30 rounded-lg text-orange-400 hover:bg-orange-500/20 transition-colors">
+                <button className="flex items-center gap-2 px-2 py-1 bg-orange-500/10 border border-orange-500/30 rounded-lg text-orange-400 hover:bg-orange-500/20 transition-colors">
                   <Trash2 className="w-4 h-4" />
                   Clear
                 </button>
@@ -72,7 +73,7 @@ export const SettingsDrawer: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-white">Export Data</span>
-                <button className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/20 transition-colors">
+                <button className="flex items-center gap-2 px-2 py-1 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/20 transition-colors">
                   <Download className="w-4 h-4" />
                   Export
                 </button>

@@ -67,10 +67,6 @@ export default function Home() {
 
   return (
     <div className="h-screen bg-black text-white overflow-hidden relative" ref={containerRef}>
-      {/* Faint grid texture */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(0,255,255,0.15)_1px,transparent_0)] bg-[length:20px_20px]"></div>
-      </div>
       <TopBar />
       <div className="flex h-[calc(100vh-80px)] relative min-h-0">
         <div style={{ width: `${sidebarWidth}px` }}>

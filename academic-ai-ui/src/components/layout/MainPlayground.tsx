@@ -55,7 +55,16 @@ export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifacts
   const [isTyping, setIsTyping] = useState(false);
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [agentActions, setAgentActions] = useState<any[]>([]);
+  const [streamingMessage, setStreamingMessage] = useState<string>('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [agentActions, setAgentActions] = useState<Array<{
+    id: string;
+    agent: string;
+    action: string;
+    timestamp: string;
+    details?: string;
+  }>>([]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -86,6 +95,8 @@ export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifacts
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
+    setIsStreaming(true);
+    setStreamingMessage('');
 
     try {
       // Send to backend
@@ -95,15 +106,28 @@ export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifacts
         stream: false
       });
 
-      // Add AI response
+      // Simulate streaming effect
+      const fullResponse = response.response;
+      let currentText = '';
+      const words = fullResponse.split(' ');
+
+      for (let i = 0; i < words.length; i++) {
+        currentText += (i > 0 ? ' ' : '') + words[i];
+        setStreamingMessage(currentText);
+        await new Promise(resolve => setTimeout(resolve, 50)); // 50ms delay between words
+      }
+
+      // Add AI response after streaming is complete
       const aiMessage: ChatMessage = {
         role: 'assistant',
-        content: response.response,
+        content: fullResponse,
         timestamp: response.timestamp,
         tools: response.agent_actions?.map(action => action.action) || []
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      setStreamingMessage('');
+      setIsStreaming(false);
 
       // Update agent actions for activity stream
       if (response.agent_actions) {
@@ -131,6 +155,8 @@ export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifacts
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMessage]);
+      setStreamingMessage('');
+      setIsStreaming(false);
     } finally {
       setIsTyping(false);
     }
@@ -152,9 +178,9 @@ export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifacts
   const pinnedMessages = messages.filter(msg => msg.pinned);
 
   return (
-    <div className="flex-1 flex flex-col bg-black/40 backdrop-blur-md h-full">
+    <div className="flex-1 flex flex-col glass-card h-full border border-cyan-500/20">
       {pinnedMessages.length > 0 && <PinnedMessages messages={pinnedMessages} onUnpin={togglePin} />}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0">
         {messages.filter(msg => !msg.pinned).map((message, index) => (
           <MessageBubble
             key={index}
@@ -167,12 +193,25 @@ export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifacts
             onPin={() => togglePin(index.toString())}
           />
         ))}
+        {isStreaming && streamingMessage && (
+          <MessageBubble
+            key="streaming"
+            id="streaming"
+            type="ai"
+            content={streamingMessage}
+            timestamp={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            tools={[]}
+            pinned={false}
+            onPin={() => {}}
+            isStreaming={true}
+          />
+        )}
         {isTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
       <AgentActivity actions={agentActions} />
-      <div className="p-4 border-t border-cyan-500/20">
-        <div className="flex gap-2">
+      <div className="p-6 border-t border-cyan-500/20">
+        <div className="flex gap-3">
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
@@ -183,24 +222,24 @@ export const MainPlayground: React.FC<{ session: ChatSession | null; onArtifacts
               onBlur={() => setIsInputFocused(false)}
               placeholder={session ? placeholders[currentPlaceholder] : "Select a session to start chatting..."}
               disabled={!session}
-              className={`w-full px-4 py-3 bg-black/50 border border-cyan-500/30 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:border-cyan-400 resize-none transition-all duration-200 ${
-                isInputFocused ? 'min-h-[80px]' : 'min-h-[48px]'
+              className={`w-full glass-card neon-border-cyan rounded-2xl px-5 py-4 text-white placeholder-zinc-400 focus:outline-none focus:neon-glow-cyan resize-none transition-all duration-300 ${
+                isInputFocused ? 'min-h-[100px] shadow-2xl' : 'min-h-[56px]'
               } ${!session ? 'opacity-50 cursor-not-allowed' : ''}`}
               rows={isInputFocused ? 3 : 1}
             />
-            <div className="absolute bottom-2 right-2 text-xs text-zinc-400">
+            <div className="absolute bottom-3 right-3 text-xs text-zinc-400">
               {inputValue.length}/2000
             </div>
           </div>
           <button
             onClick={handleSend}
             disabled={!session || !inputValue.trim() || isTyping}
-            className="px-4 py-3 bg-cyan-500/20 border border-cyan-500/40 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-4 glass-card neon-border-cyan rounded-2xl text-cyan-400 hover:neon-glow-cyan hover-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:neon-glow-cyan-0"
           >
             <Send className="w-5 h-5" />
           </button>
         </div>
-        <div className="text-xs text-zinc-400 mt-2">
+        <div className="text-xs text-zinc-400 mt-3 text-center">
           Press Enter to send, Shift+Enter for new line
         </div>
       </div>

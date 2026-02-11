@@ -15,9 +15,16 @@ const subjects = [
 export const SubjectSelector: React.FC = () => {
   const { subject: selectedSubject, setSubject } = useSubject();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  useEffect(() => {
+    // Mark component as mounted so we can safely interact with the DOM without
+    // causing hydration mismatches (suppress hydration warnings on dynamic parts).
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,6 +53,7 @@ export const SubjectSelector: React.FC = () => {
     <div className="relative">
       <button
         ref={buttonRef}
+        suppressHydrationWarning
         data-subject-button="true"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors"
@@ -53,7 +61,7 @@ export const SubjectSelector: React.FC = () => {
         {selectedSubject}
         <ChevronDown className="w-4 h-4" />
       </button>
-      {isOpen && buttonRef.current && typeof document !== 'undefined' && createPortal(
+      {mounted && isOpen && buttonRef.current && createPortal(
         <div
           ref={dropdownRef}
           className="fixed bg-black/90 backdrop-blur-md border border-cyan-500/30 rounded-lg overflow-hidden z-[9999] shadow-lg"

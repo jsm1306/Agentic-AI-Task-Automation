@@ -119,19 +119,18 @@ export const ChatSidebar: React.FC = () => {
       <div className="p-4 border-b border-cyan-500/20 space-y-3">
         <button
           onClick={addNewSession}
-          className="w-full flex items-center gap-2 px-3 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+          className="w-full flex items-center gap-2 px-2 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors"
         >
           <Plus className="w-4 h-4" />
           New Session
         </button>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             type="text"
             placeholder="Search sessions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 bg-black/40 border border-cyan-500/20 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:border-cyan-400"
+            className="w-full pl-4 pr-2 py-1 bg-black/40 border border-cyan-500/20 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:border-cyan-400"
           />
         </div>
       </div>

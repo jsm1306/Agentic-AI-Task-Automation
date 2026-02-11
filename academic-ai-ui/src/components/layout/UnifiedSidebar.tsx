@@ -418,13 +418,12 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
             <div className="p-4 border-b border-cyan-500/20">
               <div className="flex gap-2 mb-3">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400" />
                   <input
                     type="text"
-                    placeholder="Search sessions..."
+                    placeholder="Search chats..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-black/40 border border-cyan-500/20 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:border-cyan-400 text-sm"
+                    className="w-full pl-4 pr-3 py-1 bg-black/40 border border-cyan-500/20 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:border-cyan-400 text-sm transition-all duration-200"
                   />
                 </div>
                 <button
@@ -443,7 +442,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   <div key={group} className="border-b border-cyan-500/10 last:border-b-0">
                     <button
                       onClick={() => toggleGroup(group)}
-                      className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-cyan-500/5 transition-colors"
+                      className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-cyan-500/5 transition-colors"
                     >
                       <span className="text-sm font-medium text-zinc-300 capitalize">
                         {group === 'today' ? 'Today' : group === 'thisWeek' ? 'This Week' : 'Older'}

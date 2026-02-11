@@ -26,17 +26,17 @@ export const ChatSession: React.FC<ChatSessionProps> = ({ title, created_at, onC
   return (
     <div
       onClick={onClick}
-      className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 mb-2 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/20 ${
+      className={`group p-3 rounded-lg cursor-pointer transition-all duration-300 mb-2 hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/30 hover-glow ${
         isActive
-          ? 'bg-cyan-500/20 border border-cyan-500/40 shadow-lg shadow-cyan-500/20'
-          : 'bg-black/40 border border-transparent hover:bg-cyan-500/10 hover:border-cyan-500/30'
+          ? 'glass-card neon-border-cyan shadow-xl shadow-cyan-500/30 neon-glow-cyan'
+          : 'glass-card border border-transparent hover:border-cyan-500/40 hover:neon-glow-cyan'
       }`}
     >
       <div className="flex items-start gap-2">
-        <MessageSquare className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+        <MessageSquare className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0 group-hover:text-cyan-300 transition-colors" />
         <div className="flex-1 min-w-0">
-          <h3 className="text-white text-sm font-medium truncate">{title}</h3>
-          <p className="text-zinc-400 text-xs">{formatTimestamp(created_at)}</p>
+          <h3 className="text-white text-sm font-medium truncate group-hover:text-cyan-100 transition-colors">{title}</h3>
+          <p className="text-zinc-400 text-xs group-hover:text-zinc-300 transition-colors">{formatTimestamp(created_at)}</p>
         </div>
         {onDelete && (
           <button
@@ -44,7 +44,7 @@ export const ChatSession: React.FC<ChatSessionProps> = ({ title, created_at, onC
               e.stopPropagation();
               onDelete();
             }}
-            className="p-1 text-zinc-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+            className="p-1 text-zinc-500 hover:text-red-400 transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110 hover:rotate-12"
           >
             <Trash2 className="w-3 h-3" />
           </button>

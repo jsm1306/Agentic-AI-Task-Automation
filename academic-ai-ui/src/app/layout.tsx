@@ -29,6 +29,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Top-level toast root (portal target) — very high in the DOM hierarchy */}
+        <div id="toast-root" className="fixed inset-0 pointer-events-none z-[999999] flex items-start justify-center p-6" />
         <ToastProvider>
           <SubjectProvider>
             {children}
