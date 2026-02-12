@@ -135,12 +135,21 @@ class FileStorage:
     def get_session_artifacts(self, session_id: str) -> Dict[str, Any]:
         """Get artifacts for a session"""
         session_data = self.get_session(session_id)
+        artifacts = {"study_plans": [], "notes": [], "progress": [], "memory": {}}
+        
         if session_data:
-            return {
-                "session_id": session_id,
-                **session_data.get("artifacts", {})
-            }
-        return {"session_id": session_id, "study_plans": [], "notes": [], "progress": [], "memory": {}}
+            artifacts.update(session_data.get("artifacts", {}))
+        
+        # Load notes from separate file if they exist (for persistence)
+        notes_file = self.notes_path / f"{session_id}_notes.json"
+        saved_notes = self._read_json(notes_file)
+        if saved_notes:
+            artifacts["notes"] = saved_notes
+        
+        return {
+            "session_id": session_id,
+            **artifacts
+        }
 
     def save_notes(self, session_id: str, content: str, title: str):
         """Save notes for a session"""
