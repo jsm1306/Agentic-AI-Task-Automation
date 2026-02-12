@@ -71,7 +71,13 @@ class FileStorage:
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get a session by ID"""
         session_file = self.sessions_path / f"{session_id}.json"
-        return self._read_json(session_file)
+        session_data = self._read_json(session_file)
+        if session_data:
+            # Load messages from separate file if they exist
+            messages_file = self.base_path / f"{session_id}_messages.json"
+            messages = self._read_json(messages_file) or []
+            session_data["messages"] = messages
+        return session_data
 
     def get_all_sessions(self) -> List[Dict[str, Any]]:
         """Get all sessions"""
@@ -96,6 +102,11 @@ class FileStorage:
             if notes_file.exists():
                 notes_file.unlink()
 
+            # Delete associated messages file
+            messages_file = self.base_path / f"{session_id}_messages.json"
+            if messages_file.exists():
+                messages_file.unlink()
+
             # Delete associated logs
             logs_dir = Path("logs")
             if logs_dir.exists():
@@ -114,6 +125,12 @@ class FileStorage:
         if session_data:
             session_data["messages"].append(message)
             self.save_session(session_data)
+
+            # Also save messages to a separate file for persistence
+            messages_file = self.base_path / f"{session_id}_messages.json"
+            existing_messages = self._read_json(messages_file) or []
+            existing_messages.append(message)
+            self._write_json(messages_file, existing_messages)
 
     def get_session_artifacts(self, session_id: str) -> Dict[str, Any]:
         """Get artifacts for a session"""

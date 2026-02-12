@@ -1,7 +1,7 @@
 // Academic AI Assistant API Client
 // Handles communication between frontend and backend
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://agentic-ai-task-automation-backend.onrender.com';
 
 export interface ChatSession {
   id: string;
