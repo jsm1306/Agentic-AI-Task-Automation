@@ -6,10 +6,11 @@
 // 2. Local development default (dev-friendly)
 // 3. NEXT_PUBLIC_API_BACKEND (optional fallback)
 // 4. Public demo/backend IP fallback (user-provided)
+// Resolve API URL from env first, then optional/backups
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:10000' ||
   process.env.NEXT_PUBLIC_API_BACKEND ||
+  'http://localhost:10000' ||
   'http://13.63.61.152:10000' ||
   'https://agentic-ai-task-automation-backend.onrender.com';
 
@@ -72,31 +73,61 @@ export interface CreateSessionRequest {
 
 class ApiClient {
   private baseUrl: string;
+  private candidates: string[];
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+
+    // Candidate base URLs (order of preference)
+    // Prefer explicit NEXT_PUBLIC_API_URL if set, otherwise try EC2 -> localhost -> NEXT_PUBLIC_API_BACKEND -> hosted render
+    this.candidates = [
+      process.env.NEXT_PUBLIC_API_URL || '',
+      'http://13.63.61.152:10000',        // EC2 (user-provided)
+      'http://localhost:10000',          // local dev
+      process.env.NEXT_PUBLIC_API_BACKEND || '',
+      'https://agentic-ai-task-automation-backend.onrender.com' // hosted
+    ].filter(Boolean);
   }
 
+  /**
+   * Attempts the request against the configured baseUrl and falls back to
+   * other candidate hosts on network failure (helps when local backend is
+   * down but a remote instance is available).
+   */
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    let lastError: any = null;
 
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
+    for (const base of this.candidates) {
+      const url = `${base}${endpoint}`;
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...options.headers,
+          },
+          ...options,
+        });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`API Error: ${response.status} - ${error}`);
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(`API Error: ${response.status} - ${error}`);
+        }
+
+        return response.json();
+      } catch (err: any) {
+        // If this was a network failure, try the next candidate; otherwise rethrow
+        lastError = err;
+        const isNetworkError = err instanceof TypeError || /failed to fetch/i.test(String(err));
+        if (!isNetworkError) throw err;
+        // otherwise continue to next candidate
+      }
     }
 
-    return response.json();
+    // All candidates failed
+    throw lastError || new Error('All API hosts failed');
   }
 
   // Health check
