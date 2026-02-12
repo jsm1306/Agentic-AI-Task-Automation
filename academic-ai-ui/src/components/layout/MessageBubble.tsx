@@ -25,6 +25,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 }) => {
   const isUser = type === 'user';
 
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    } catch {
+      return timestamp;
+    }
+  };
+
   return (
     <div className={`flex gap-3 animate-fade-in-up ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && (
@@ -66,7 +75,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
         </div>
         <div className={`flex items-center gap-2 mt-2 text-xs text-zinc-400 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className="opacity-70">{timestamp}</span>
+          <span className="opacity-70">{formatTimestamp(timestamp)}</span>
           <button
             onClick={onPin}
             className={`p-1.5 rounded-full glass-card hover-glow transition-all duration-300 ${

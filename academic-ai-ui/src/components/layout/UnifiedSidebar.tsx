@@ -51,22 +51,7 @@ const mockArtifacts = {
   memory: [
     { id: '7', title: 'User Preferences', content: 'Prefers detailed explanations\nInterested in practical applications\nLearning pace: Moderate', type: 'memory', timestamp: '2024-01-15 08:00', editable: false },
     { id: '8', title: 'Session Context', content: 'Currently studying Object Detection\nPrevious topics: CNN basics\nNext planned: YOLO v3', type: 'memory', timestamp: '2024-01-14 16:45', editable: false }
-  ]
-};
 
-const groupSessions = (sessions: ChatSession[]) => {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-  return {
-    today: sessions.filter(s => new Date(s.created_at) >= today),
-    thisWeek: sessions.filter(s => {
-      const date = new Date(s.created_at);
-      return date >= weekAgo && date < today;
-    }),
-    older: sessions.filter(s => new Date(s.created_at) < weekAgo)
-  };
 };
 
 interface UnifiedSidebarProps {
@@ -83,7 +68,6 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedGroups, setExpandedGroups] = useState({ today: true, thisWeek: true, older: false });
   const [artifacts, setArtifacts] = useState<ArtifactsData>(mockArtifacts);
   const [globalArtifacts, setGlobalArtifacts] = useState<ArtifactsData>(mockArtifacts);
   const [hasLoadedGlobal, setHasLoadedGlobal] = useState(false);
@@ -96,14 +80,28 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
   const { addToast } = useToast();
 
   useEffect(() => {
-    loadSessions();
-  }, []);
+    if (currentSession) {
+      loadArtifacts(currentSession.id);
+    } else {
+      setArtifacts(mockArtifacts);
+    }
+  }, [currentSession]);
 
   useEffect(() => {
     if (artifactsTab === 'global' && !hasLoadedGlobal) {
       loadGlobalArtifacts();
     }
   }, [artifactsTab, hasLoadedGlobal]);
+
+  useEffect(() => {
+    if (artifactsRefreshTrigger) {
+      setHasLoadedGlobal(false);
+      loadGlobalArtifacts();
+      if (currentSession) {
+        loadArtifacts(currentSession.id);
+      }
+    }
+  }, [artifactsRefreshTrigger]);
 
   const loadSessions = async () => {
     try {
@@ -310,22 +308,17 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
     return sessions.filter(s => (s.subject || '').toLowerCase() === subject.toLowerCase());
   }, [sessions, subject]);
 
-  const groupedSessions = useMemo(() => groupSessions(sessionsBySubject), [sessionsBySubject]);
 
   const filteredSessions = useMemo(() => {
-    if (!searchQuery) return groupedSessions;
-    const filtered = { ...groupedSessions };
-    Object.keys(filtered).forEach(key => {
-      filtered[key as keyof typeof filtered] = filtered[key as keyof typeof filtered].filter(
+    let filtered = sessionsBySubject;
+    if (searchQuery) {
+      filtered = filtered.filter(
         session => session.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    });
-    return filtered;
-  }, [groupedSessions, searchQuery]);
-
-  const toggleGroup = (group: string) => {
-    setExpandedGroups(prev => ({ ...prev, [group]: !prev[group as keyof typeof prev] }));
-  };
+    }
+    // Sort by created_at descending (newest first)
+    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [sessionsBySubject, searchQuery]);
 
 
 
@@ -437,38 +430,24 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
 
             {/* Sessions List */}
             <div className="flex-1 overflow-y-auto">
-              {Object.entries(filteredSessions).map(([group, groupSessions]) => (
-                groupSessions.length > 0 && (
-                  <div key={group} className="border-b border-cyan-500/10 last:border-b-0">
-                    <button
-                      onClick={() => toggleGroup(group)}
-                      className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-cyan-500/5 transition-colors"
-                    >
-                      <span className="text-sm font-medium text-zinc-300 capitalize">
-                        {group === 'today' ? 'Today' : group === 'thisWeek' ? 'This Week' : 'Older'}
-                      </span>
-                      {expandedGroups[group as keyof typeof expandedGroups] ? (
-                        <ChevronUp className="w-4 h-4 text-zinc-400" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-zinc-400" />
-                      )}
-                    </button>
-                    {expandedGroups[group as keyof typeof expandedGroups] && (
-                      <div className="px-2 pb-2 space-y-1">
-                        {groupSessions.map((session) => (
-                          <ChatSessionComponent
-                            key={session.id}
-                            {...session}
-                            onClick={() => onSessionSelect(session)}
-                            onDelete={() => handleDeleteSession(session.id)}
-                            isActive={currentSession?.id === session.id}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              ))}
+              {filteredSessions.length > 0 ? (
+                <div className="px-2 pb-2 space-y-1">
+                  {filteredSessions.map((session) => (
+                    <ChatSessionComponent
+                      key={session.id}
+                      {...session}
+                      onClick={() => onSessionSelect(session)}
+                      onDelete={() => handleDeleteSession(session.id)}
+                      isActive={currentSession?.id === session.id}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 py-8 text-center text-zinc-500">
+                  <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No chats found</p>
+                </div>
+              )}
             </div>
           </div>
         ) : (

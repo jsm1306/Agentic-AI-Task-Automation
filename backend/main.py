@@ -135,10 +135,10 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
             mock_response = {
                 "session_id": request.session_id,
                 "response": f"I understand you want to discuss: '{request.message}'. This is a mock response since no API keys are configured. Please set up your GEMINI_API_KEY in the .env file to enable full AI functionality.",
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.utcnow().isoformat(),
                 "agent_actions": [
                     {
-                        "timestamp": datetime.now().isoformat(),
+                        "timestamp": datetime.utcnow().isoformat(),
                         "action": "MOCK_RESPONSE",
                         "details": {"message": "Mock AI response generated"}
                     }
@@ -182,7 +182,7 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
         response_data = {
             "session_id": request.session_id,
             "response": str(result),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.utcnow().isoformat(),
             "agent_actions": logger.get_recent_actions(request.session_id)
         }
 
