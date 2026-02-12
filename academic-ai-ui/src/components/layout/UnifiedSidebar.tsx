@@ -138,7 +138,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
           });
           return updated;
         });
-
+        
         // Also remove from global artifacts if it exists there
         setGlobalArtifacts(prev => {
           const updated = { ...prev };
@@ -149,12 +149,12 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
           });
           return updated;
         });
-
+        
         // Refresh global artifacts if we're currently viewing global
         if (artifactsTab === 'global') {
           loadGlobalArtifacts();
         }
-
+        
         addToast({
           type: 'success',
           title: 'Artifact deleted',
@@ -175,13 +175,13 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         try {
           await apiClient.deleteSession(sessionId);
           setSessions(prev => prev.filter(s => s.id !== sessionId));
-
+          
           // If the deleted session was active, clear the current session
           if (currentSession?.id === sessionId) {
             onSessionSelect(null);
             setArtifacts(mockArtifacts); // Reset to mock data
           }
-
+          
           addToast({
             type: 'success',
             title: 'Session deleted',
@@ -259,7 +259,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
       for (const session of sessions) {
         try {
           const sessionArtifacts = await apiClient.getArtifacts(session.id);
-
+          
           // Add session info to each artifact
           if (sessionArtifacts.study_plans) {
             allArtifacts.studyPlans.push(...sessionArtifacts.study_plans.map((plan: any) => ({
@@ -296,7 +296,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
 
   const handleNewSession = async () => {
     try {
-      const newSession = await apiClient.createSession({
+      const newSession = await apiClient.createSession({ 
         title: 'New Academic Session',
         subject: 'General Academic Study'
       });
@@ -353,15 +353,17 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         <div className="mt-8 space-y-2">
           <button
             onClick={() => { setActiveTab('chat'); onToggleCollapse(); }}
-            className={`p-2 rounded-lg transition-colors ${activeTab === 'chat' ? 'bg-cyan-500/20 text-cyan-400' : 'text-zinc-400 hover:text-zinc-300'
-              }`}
+            className={`p-2 rounded-lg transition-colors ${
+              activeTab === 'chat' ? 'bg-cyan-500/20 text-cyan-400' : 'text-zinc-400 hover:text-zinc-300'
+            }`}
           >
             <MessageSquare className="w-5 h-5" />
           </button>
           <button
             onClick={() => { setActiveTab('artifacts'); onToggleCollapse(); }}
-            className={`p-2 rounded-lg transition-colors ${activeTab === 'artifacts' ? 'bg-violet-500/20 text-violet-400' : 'text-zinc-400 hover:text-zinc-300'
-              }`}
+            className={`p-2 rounded-lg transition-colors ${
+              activeTab === 'artifacts' ? 'bg-violet-500/20 text-violet-400' : 'text-zinc-400 hover:text-zinc-300'
+            }`}
           >
             <FileText className="w-5 h-5" />
           </button>
@@ -389,10 +391,11 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         <div className="flex bg-black/40 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('chat')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'chat'
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'chat'
                 ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                 : 'text-zinc-400 hover:text-zinc-300'
-              }`}
+            }`}
             suppressHydrationWarning
           >
             <MessageSquare className="w-4 h-4" />
@@ -400,10 +403,11 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
           </button>
           <button
             onClick={() => setActiveTab('artifacts')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'artifacts'
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'artifacts'
                 ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                 : 'text-zinc-400 hover:text-zinc-300'
-              }`}
+            }`}
             suppressHydrationWarning
           >
             <FileText className="w-4 h-4" />
@@ -430,6 +434,39 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   />
                 </div>
                 <div className="flex items-center gap-2">
+                  <label className="p-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-colors cursor-pointer">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const allowed = ['.pdf', '.doc', '.docx'];
+                        const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+                        if (!allowed.includes(ext)) {
+                          addToast({ title: 'Invalid file type', message: 'Only PDF and DOC/DOCX files are accepted. Please upload a PDF or DOC/DOCX file.', type: 'error' });
+                          return;
+                        }
+
+                        if (!currentSession) {
+                          addToast({ title: 'No session selected', message: 'Please select a session/subject before uploading files.', type: 'error' });
+                          return;
+                        }
+
+                        try {
+                          const res = await apiClient.uploadSubjectFile(currentSession.subject, file);
+                          addToast({ title: 'Upload successful', message: `${res.files.length} file(s) uploaded`, type: 'success' });
+                          if (onSessionSelect) onSessionSelect(currentSession);
+                          setHasLoadedGlobal(false);
+                        } catch (err: any) {
+                          addToast({ title: 'Upload failed', message: err.message || 'Upload failed', type: 'error' });
+                        }
+                      }}
+                    />
+                    <Plus className="w-4 h-4 inline-block" />
+                  </label>
+
                   <button
                     onClick={handleNewSession}
                     className="p-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-colors"
@@ -473,10 +510,11 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                     <button
                       key={tab.key}
                       onClick={() => setArtifactsTab(tab.key)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${artifactsTab === tab.key
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                        artifactsTab === tab.key
                           ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                           : 'text-zinc-400 hover:text-zinc-300'
-                        }`}
+                      }`}
                     >
                       <tab.icon className="w-4 h-4" />
                       {tab.label}
@@ -493,7 +531,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   if (artifactsTab === 'global') {
                     const currentArtifacts = globalArtifacts;
                     const hasAnyArtifacts = Object.values(currentArtifacts).some(arr => arr.length > 0);
-
+                    
                     if (!hasAnyArtifacts) {
                       return (
                         <div className="text-center text-zinc-500 py-8">
@@ -562,7 +600,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   } else if (artifactsTab === 'session') {
                     const currentArtifacts = artifacts;
                     const hasAnyArtifacts = Object.values(currentArtifacts).some(arr => arr.length > 0);
-
+                    
                     if (!hasAnyArtifacts) {
                       return (
                         <div className="text-center text-zinc-500 py-8">
@@ -631,7 +669,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   } else {
                     // Individual artifact type tabs (studyPlans, notes, progress, memory)
                     const artifactList = artifacts[artifactsTab as keyof ArtifactsData] || [];
-
+                    
                     if (artifactList.length === 0) {
                       return (
                         <div className="text-center text-zinc-500 py-8">
@@ -656,7 +694,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         isOpen={confirmationDialog?.isOpen || false}
         title={confirmationDialog?.title || ''}
         message={confirmationDialog?.message || ''}
-        onConfirm={confirmationDialog?.onConfirm || (() => { })}
+        onConfirm={confirmationDialog?.onConfirm || (() => {})}
         onCancel={() => setConfirmationDialog(null)}
       />
     </div>

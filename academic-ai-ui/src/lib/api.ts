@@ -1,7 +1,17 @@
 // Academic AI Assistant API Client
 // Handles communication between frontend and backend
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
+// API base URL resolution order:
+// 1. NEXT_PUBLIC_API_URL (explicit override)
+// 2. Local development default (dev-friendly)
+// 3. NEXT_PUBLIC_API_BACKEND (optional fallback)
+// 4. Public demo/backend IP fallback (user-provided)
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:10000' ||
+  process.env.NEXT_PUBLIC_API_BACKEND ||
+  'http://13.63.61.152:10000' ||
+  'https://agentic-ai-task-automation-backend.onrender.com';
 
 export interface ChatSession {
   id: string;

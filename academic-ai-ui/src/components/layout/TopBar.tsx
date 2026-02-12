@@ -5,7 +5,6 @@ import { SettingsDrawer } from '../ui/SettingsDrawer';
 import { useSubject } from '../context/SubjectContext';
 import { useToast } from '../ui/Toast';
 import { apiClient } from '../../lib/api';
-import { Upload } from 'lucide-react';
 
 export const TopBar: React.FC = () => {
   const { subject } = useSubject();
@@ -48,7 +47,7 @@ export const TopBar: React.FC = () => {
         {/* Upload control placed next to subject selector in header */}
         <label className="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors cursor-pointer">
           <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={onFileChange} />
-          <Upload className="w-4 h-4" />
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v12m0 0l-4-4m4 4 4-4M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
         </label>
 
         <AIStatus />

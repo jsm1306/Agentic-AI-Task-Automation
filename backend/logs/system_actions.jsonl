@@ -267,3 +267,6 @@
 {"timestamp": "2026-02-12T15:26:30.901330+05:30", "action": "ERROR", "details": {"message": "Failed to configure Google Generative AI: module 'google.genai' has no attribute 'configure'"}, "session_id": "system"}
 {"timestamp": "2026-02-12T15:26:30.902030+05:30", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
 {"timestamp": "2026-02-12T15:26:30.945767+05:30", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
+{"timestamp": "2026-02-12T16:51:54.463239+05:30", "action": "ERROR", "details": {"message": "Failed to configure Google Generative AI: module 'google.genai' has no attribute 'configure'"}, "session_id": "system"}
+{"timestamp": "2026-02-12T16:51:54.464067+05:30", "action": "INFO", "details": {"message": "Running with API keys - Full AI functionality enabled"}, "session_id": "system"}
+{"timestamp": "2026-02-12T16:51:54.517655+05:30", "action": "INFO", "details": {"message": "Academic AI Assistant backend started"}, "session_id": "system"}
