@@ -4,14 +4,34 @@ An **agent-based academic assistant** built using CrewAI and LLM APIs (Gemini + 
 
 This project demonstrates a complete autonomous AI agent system with:
 
--   ✅ **Multi-agent orchestration**
--   🔍 **Real web search integration**
--   📄 **Document ingestion (PDF + OCR)**
--   🧠 **Persistent memory**
--   ⚠️ **Failure detection & self-correction**
--   📅 **Study plan generation**
--   📝 **Note generation and saving**
--   📈 **Progress tracking**
+* ✅ **Multi-agent orchestration**
+* 🔍 **Real web search integration**
+* 📄 **Document ingestion (PDF + OCR)**
+* 🧠 **Persistent memory**
+* ⚠️ **Failure detection & self-correction**
+* 📅 **Study plan generation**
+* 📝 **Note generation and saving**
+* 📈 **Progress tracking**
+
+---
+
+## 🌐 Live Deployment
+
+🚀 **Live Demo:**
+https://agentic-ai-task-automation.onrender.com/
+
+### Deployment Architecture
+
+* **Frontend:** Next.js hosted on Render
+* **Backend:** FastAPI + CrewAI agents deployed on AWS EC2
+* **Cloud Setup:**
+
+  * Elastic IP for stable backend endpoint
+  * Systemd service for automatic backend startup
+  * Environment-based API routing
+  * Secure API key management using `.env`
+
+This setup reflects a real-world startup-style architecture where frontend and backend are deployed independently.
 
 ---
 
@@ -21,20 +41,20 @@ As a student, you don't just want an AI that *answers questions* — you want on
 
 This system does exactly that for a single subject (e.g., *Object Detection*) by:
 
-1.  Reading course materials (PDFs)
-2.  Extracting structured text
-3.  Generating study plans
-4.  Creating and saving notes
-5.  Tracking progress in memory
+1. Reading course materials (PDFs)
+2. Extracting structured text
+3. Generating study plans
+4. Creating and saving notes
+5. Tracking progress in memory
 
 ---
 
 ## 🧠 Highlights
 
-✅ Multi-agent reasoning and tool usage  
-✅ Quota-safe extraction of academic content  
-✅ Memory-driven progress tracking  
-✅ Failure recovery and adaptive planning  
+✅ Multi-agent reasoning and tool usage
+✅ Quota-safe extraction of academic content
+✅ Memory-driven progress tracking
+✅ Failure recovery and adaptive planning
 ✅ Practical, useful outputs (notes & planner)
 
 ---
@@ -42,92 +62,81 @@ This system does exactly that for a single subject (e.g., *Object Detection*) by
 ## 🗂️ Folder Structure
 
 ```
-subjects/└── ObjectDetection/    ├── source/          # Original PDFs    ├── extracted/       # Clean text from PDFs    ├── notes/           # Generated study notes    └── memory.json      # Study progress historyagents/                   # Agent definitionstools/                    # Custom toolsutils/                    # Utility scripts
+subjects/
+└── ObjectDetection/
+    ├── source/          # Original PDFs
+    ├── extracted/       # Clean text from PDFs
+    ├── notes/           # Generated study notes
+    └── memory.json      # Study progress history
+
+agents/                   # Agent definitions
+tools/                    # Custom tools
+utils/                    # Utility scripts
 ```
 
 ---
 
 ## ⚙️ Setup Instructions
 
-1.  **Clone the repo:**
-    
-    ```bash
-    git clone https://github.com/jsm1306/Agentic-AI-Task-Automationcd Agentic-AI-Task-Automation
-    ```
-    
-2.  **Create & activate a virtual environment:**
-    
-    ```bash
-    python -m venv venvsource venv/bin/activate        # macOS/LinuxvenvScriptsactivate           # Windows
-    ```
-    
-3.  **Install dependencies:**
-    
-    ```bash
-    pip install -r requirements.txt
-    ```
-    
-4.  **Add your LLM & search API keys to a `.env` file:**
-    
-    ```
-    GEMINI_API_KEY=your_gemini_keyPERPLEXITY_API_KEY=your_perplexity_key
-    ```
-    
-5.  **Set up Tesseract + Poppler (for PDF OCR extraction).**
-    
+1. Clone the repo:
+
+```bash
+git clone https://github.com/jsm1306/Agentic-AI-Task-Automation
+cd Agentic-AI-Task-Automation
+```
+
+2. Create & activate a virtual environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate        # macOS/Linux
+venv\Scripts\activate           # Windows
+```
+
+3. Install dependencies:
+
+```bash
+pip install -r requirementsnew.txt
+```
+
+4. Add your LLM & search API keys to a `.env` file:
+
+```
+GEMINI_API_KEY=your_gemini_key
+PERPLEXITY_API_KEY=your_perplexity_key
+```
+
+5. Set up Tesseract + Poppler (for PDF OCR extraction).
 
 ---
 
-## � Generating a requirements.txt
+## 📌 How to Use
 
-You can create a `requirements.txt` that lists the packages your project depends on.
-
--   From an activated virtual environment, run:
+### 1️⃣ Extract Content
 
 ```bash
-pip freeze > requirements.txt
+python extract_object_detection.py
 ```
 
-This writes the exact package versions installed in the environment to `requirements.txt`.
-
--   For a minimal set of packages used by your project, use `pipreqs`:
+### 2️⃣ Generate a Study Plan
 
 ```bash
-pip install pipreqspipreqs /path/to/your/project
+python main.py
 ```
 
-If you want, I can generate a starter `requirements.txt` for you from your `agentenv` virtual environment — tell me and I’ll run `pip freeze` and add the file to the repo.
+Outputs will be saved in:
 
----
-
-## �📌 How to Use
-
-1.  **Extract Content:**
-    
-    ```bash
-    python extract_object_detection.py
-    ```
-    
-2.  **Generate a Study Plan:**
-    
-    ```bash
-    python main.py
-    ```
-    
-    You'll get a structured 3-day plan & automated notes saved in:
-    
-    ```
-    subjects/ObjectDetection/notes/
-    ```
-    
+```
+subjects/ObjectDetection/notes/
+```
 
 ---
 
 ## 🧪 Demo Outputs
 
-✅ 5-day study plan for your subject  
-✅ Notes file saved to disk  
-✅ Progress stored in `memory.json`
+✅ Structured multi-day study plan
+✅ Generated academic notes saved to disk
+✅ Persistent progress stored in `memory.json`
 
 ---
 
@@ -135,11 +144,28 @@ If you want, I can generate a starter `requirements.txt` for you from your `agen
 
 This project covers:
 
--   🧩 **CrewAI multi-agent setup**
--   🔧 **Tool orchestration**
--   💾 **Memory persistence**
--   📚 **PDF & OCR pipelines**
--   🤖 **Intelligent task planning**
--   🔒 **Production-safe rate limiting**
--   💡 **Practical tool-driven workflows**
--   ✅ **Testing & failure recovery practices**
+* 🧩 CrewAI multi-agent architecture
+* 🔧 Tool orchestration and autonomous workflows
+* 💾 Memory persistence
+* 📚 PDF & OCR pipelines
+* 🤖 Intelligent task planning with LLMs
+* 🔒 Production-safe rate limiting
+* ☁️ AWS EC2 backend deployment with Elastic IP
+* 🚀 Cloud-based AI application architecture
+
+---
+
+## 📦 Generating requirements.txt
+
+From an activated virtual environment:
+
+```bash
+pip freeze > requirements.txt
+```
+
+For minimal dependencies:
+
+```bash
+pip install pipreqs
+pipreqs /path/to/your/project
+```
