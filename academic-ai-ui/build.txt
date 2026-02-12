@@ -1,0 +1,114 @@
+﻿
+> academic-ai-ui@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.2 (Turbopack)
+
+  Creating an optimized production build ...
+node.exe : 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotS    pecified: 
+(:Str    ing) [], Remote  
+  Exception
+    + FullyQualifie    
+dErrorId : Nati    
+veCommandError
+ 
+> Build error occurred
+Error: Turbopack build 
+failed with 1 errors:
+./src/app/globals.css
+Error evaluating Node.js 
+code
+CssSyntaxError: S:\Automat
+ed_Agent\academic-ai-ui\sr
+c\app\globals.css:106:3: 
+The `border-primary/30` 
+class does not exist. If 
+`border-primary/30` is a 
+custom class, make sure 
+it is defined within a 
+`@layer` directive.
+    at Input.error (node_m
+odules/postcss/lib/input.j
+s:135:16) [S:\Automated_Ag
+ent\academic-ai-ui\.next\b
+uild\chunks\node_modules_f
+e693df6._.js:4651:22]
+    at AtRule.error (node_
+modules/postcss/lib/node.j
+s:146:32) [S:\Automated_Ag
+ent\academic-ai-ui\.next\b
+uild\chunks\node_modules_f
+e693df6._.js:928:38]
+    [at processApply (S:\A
+utomated_Agent\academic-ai
+-ui\node_modules\tailwindc
+ss\lib\lib\expandApplyAtRu
+les.js:380:29)]
+    [at S:\Automated_Agent
+\academic-ai-ui\node_modul
+es\tailwindcss\lib\lib\exp
+andApplyAtRules.js:551:9]
+    [at S:\Automated_Agent
+\academic-ai-ui\node_modul
+es\tailwindcss\lib\process
+TailwindFeatures.js:55:50]
+    [at async plugins (S:\
+Automated_Agent\academic-a
+i-ui\node_modules\tailwind
+css\lib\plugin.js:38:17)]
+    at async 
+LazyResult.runAsync (node_
+modules/postcss/lib/lazy-r
+esult.js:293:11) [S:\Autom
+ated_Agent\academic-ai-ui\
+.next\build\chunks\node_mo
+dules_fe693df6._.js:6206:2
+1]
+    at async transform (tu
+rbopack:///[turbopack-node
+]/transforms/postcss.ts:70
+:34) [S:\Automated_Agent\a
+cademic-ai-ui\.next\build\
+chunks\[root-of-the-server
+]__51225daf._.js:147:36]
+    at async run (turbopac
+k:///[turbopack-node]/ipc/
+evaluate.ts:92:23) [S:\Aut
+omated_Agent\academic-ai-u
+i\.next\build\chunks\[root
+-of-the-server]__974941ed.
+_.js:443:31]
+
+Import trace:
+  Client Component 
+Browser:
+    ./src/app/globals.css 
+[Client Component Browser]
+    ./src/app/layout.tsx 
+[Server Component]
+
+
+    at async transform (tu
+rbopack:///[turbopack-node
+]/transforms/postcss.ts:70
+:34) [S:\Automated_Agent\a
+cademic-ai-ui\.next\build\
+chunks\[root-of-the-server
+]__51225daf._.js:147:36])
+    at async run (turbopac
+k:///[turbopack-node]/ipc/
+evaluate.ts:92:23) [S:\Aut
+omated_Agent\academic-ai-u
+i\.next\build\chunks\[root
+-of-the-server]__974941ed.
+_.js:443:31])

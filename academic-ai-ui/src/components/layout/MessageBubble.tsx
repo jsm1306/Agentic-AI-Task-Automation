@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pin, User, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { toLocaleTime } from '../../lib/dates';
 
 interface MessageBubbleProps {
   id: string;
@@ -11,6 +12,7 @@ interface MessageBubbleProps {
   pinned?: boolean;
   onPin: () => void;
   isStreaming?: boolean;
+  artifact?: string;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -22,17 +24,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   pinned = false,
   onPin,
   isStreaming = false,
+  artifact,
 }) => {
   const isUser = type === 'user';
 
   const formatTimestamp = (timestamp: string) => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleString();
-    } catch {
-      return timestamp;
-    }
+    if (!timestamp) return '';
+    const { parseToDate } = require('../../lib/dates');
+    const parsed = parseToDate(timestamp);
+    if (parsed) return toLocaleTime(timestamp, { hour: '2-digit', minute: '2-digit' });
+    return timestamp; // already formatted
   };
+
+  const tsText = formatTimestamp(timestamp);
 
   return (
     <div className={`flex gap-3 animate-fade-in-up ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -52,14 +56,24 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {isUser ? (
             <div className="whitespace-pre-wrap leading-relaxed">{content}</div>
           ) : (
-            <div className="prose prose-invert prose-sm max-w-none prose-headings:text-cyan-300 prose-strong:text-cyan-200 prose-code:text-cyan-100 prose-code:bg-zinc-800/50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:border prose-code:border-zinc-600 prose-p:leading-relaxed prose-ul:space-y-2 prose-li:text-zinc-200">
-              <ReactMarkdown>
-                {content}
-              </ReactMarkdown>
-              {isStreaming && (
-                <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse ml-1"></span>
+            <>
+              <div className="prose prose-invert prose-sm max-w-none prose-headings:text-cyan-300 prose-strong:text-cyan-200 prose-code:text-cyan-100 prose-code:bg-zinc-800/50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:border prose-code:border-zinc-600 prose-p:leading-relaxed prose-ul:space-y-2 prose-li:text-zinc-200">
+                <ReactMarkdown>
+                  {content}
+                </ReactMarkdown>
+                {isStreaming && (
+                  <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse ml-1"></span>
+                )}
+              </div>
+              {artifact && (
+                <div className="mt-4 p-4 glass-card neon-border-cyan rounded-lg">
+                  <div className="text-sm text-cyan-300 font-medium mb-2">📝 Generated Notes</div>
+                  <div className="text-zinc-200 whitespace-pre-wrap text-sm leading-relaxed">
+                    {artifact}
+                  </div>
+                </div>
               )}
-            </div>
+            </>
           )}
           {tools && tools.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -75,7 +89,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
         </div>
         <div className={`flex items-center gap-2 mt-2 text-xs text-zinc-400 ${isUser ? 'justify-end' : 'justify-start'}`}>
-          <span className="opacity-70">{formatTimestamp(timestamp)}</span>
+          {tsText ? <span className="opacity-70">{tsText}</span> : null}
           <button
             onClick={onPin}
             className={`p-1.5 rounded-full glass-card hover-glow transition-all duration-300 ${

@@ -51,7 +51,7 @@ const mockArtifacts = {
   memory: [
     { id: '7', title: 'User Preferences', content: 'Prefers detailed explanations\nInterested in practical applications\nLearning pace: Moderate', type: 'memory', timestamp: '2024-01-15 08:00', editable: false },
     { id: '8', title: 'Session Context', content: 'Currently studying Object Detection\nPrevious topics: CNN basics\nNext planned: YOLO v3', type: 'memory', timestamp: '2024-01-14 16:45', editable: false }
-
+  ]
 };
 
 interface UnifiedSidebarProps {
@@ -61,6 +61,8 @@ interface UnifiedSidebarProps {
   onSessionSelect: (session: ChatSession | null) => void;
   artifactsRefreshTrigger?: number;
 }
+
+import { parseToDate } from '../../lib/dates';
 
 export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onToggleCollapse, currentSession, onSessionSelect, artifactsRefreshTrigger }) => {
   const [activeTab, setActiveTab] = useState<'chat' | 'artifacts'>('chat');
@@ -78,6 +80,10 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
     onConfirm: () => void;
   } | null>(null);
   const { addToast } = useToast();
+
+  useEffect(() => {
+    loadSessions();
+  }, []);
 
   useEffect(() => {
     if (currentSession) {
@@ -132,7 +138,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
           });
           return updated;
         });
-        
+
         // Also remove from global artifacts if it exists there
         setGlobalArtifacts(prev => {
           const updated = { ...prev };
@@ -143,12 +149,12 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
           });
           return updated;
         });
-        
+
         // Refresh global artifacts if we're currently viewing global
         if (artifactsTab === 'global') {
           loadGlobalArtifacts();
         }
-        
+
         addToast({
           type: 'success',
           title: 'Artifact deleted',
@@ -169,13 +175,13 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         try {
           await apiClient.deleteSession(sessionId);
           setSessions(prev => prev.filter(s => s.id !== sessionId));
-          
+
           // If the deleted session was active, clear the current session
           if (currentSession?.id === sessionId) {
             onSessionSelect(null);
             setArtifacts(mockArtifacts); // Reset to mock data
           }
-          
+
           addToast({
             type: 'success',
             title: 'Session deleted',
@@ -253,7 +259,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
       for (const session of sessions) {
         try {
           const sessionArtifacts = await apiClient.getArtifacts(session.id);
-          
+
           // Add session info to each artifact
           if (sessionArtifacts.study_plans) {
             allArtifacts.studyPlans.push(...sessionArtifacts.study_plans.map((plan: any) => ({
@@ -290,7 +296,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
 
   const handleNewSession = async () => {
     try {
-      const newSession = await apiClient.createSession({ 
+      const newSession = await apiClient.createSession({
         title: 'New Academic Session',
         subject: 'General Academic Study'
       });
@@ -317,7 +323,11 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
       );
     }
     // Sort by created_at descending (newest first)
-    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return filtered.sort((a, b) => {
+      const da = parseToDate(b.created_at) || new Date(b.created_at);
+      const db = parseToDate(a.created_at) || new Date(a.created_at);
+      return da.getTime() - db.getTime();
+    });
   }, [sessionsBySubject, searchQuery]);
 
 
@@ -343,17 +353,15 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         <div className="mt-8 space-y-2">
           <button
             onClick={() => { setActiveTab('chat'); onToggleCollapse(); }}
-            className={`p-2 rounded-lg transition-colors ${
-              activeTab === 'chat' ? 'bg-cyan-500/20 text-cyan-400' : 'text-zinc-400 hover:text-zinc-300'
-            }`}
+            className={`p-2 rounded-lg transition-colors ${activeTab === 'chat' ? 'bg-cyan-500/20 text-cyan-400' : 'text-zinc-400 hover:text-zinc-300'
+              }`}
           >
             <MessageSquare className="w-5 h-5" />
           </button>
           <button
             onClick={() => { setActiveTab('artifacts'); onToggleCollapse(); }}
-            className={`p-2 rounded-lg transition-colors ${
-              activeTab === 'artifacts' ? 'bg-violet-500/20 text-violet-400' : 'text-zinc-400 hover:text-zinc-300'
-            }`}
+            className={`p-2 rounded-lg transition-colors ${activeTab === 'artifacts' ? 'bg-violet-500/20 text-violet-400' : 'text-zinc-400 hover:text-zinc-300'
+              }`}
           >
             <FileText className="w-5 h-5" />
           </button>
@@ -371,6 +379,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
           <button
             onClick={onToggleCollapse}
             className="p-1 text-zinc-400 hover:text-zinc-300 transition-colors"
+            suppressHydrationWarning
           >
             <PanelLeftClose className="w-5 h-5" />
           </button>
@@ -380,22 +389,22 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         <div className="flex bg-black/40 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('chat')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'chat'
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'chat'
                 ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                 : 'text-zinc-400 hover:text-zinc-300'
-            }`}
+              }`}
+            suppressHydrationWarning
           >
             <MessageSquare className="w-4 h-4" />
             Chat
           </button>
           <button
             onClick={() => setActiveTab('artifacts')}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'artifacts'
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'artifacts'
                 ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                 : 'text-zinc-400 hover:text-zinc-300'
-            }`}
+              }`}
+            suppressHydrationWarning
           >
             <FileText className="w-4 h-4" />
             Artifacts
@@ -417,14 +426,18 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-4 pr-3 py-1 bg-black/40 border border-cyan-500/20 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:border-cyan-400 text-sm transition-all duration-200"
+                    suppressHydrationWarning
                   />
                 </div>
-                <button
-                  onClick={handleNewSession}
-                  className="p-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleNewSession}
+                    className="p-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/30 transition-colors"
+                    suppressHydrationWarning
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -460,11 +473,10 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                     <button
                       key={tab.key}
                       onClick={() => setArtifactsTab(tab.key)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                        artifactsTab === tab.key
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${artifactsTab === tab.key
                           ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                           : 'text-zinc-400 hover:text-zinc-300'
-                      }`}
+                        }`}
                     >
                       <tab.icon className="w-4 h-4" />
                       {tab.label}
@@ -481,7 +493,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   if (artifactsTab === 'global') {
                     const currentArtifacts = globalArtifacts;
                     const hasAnyArtifacts = Object.values(currentArtifacts).some(arr => arr.length > 0);
-                    
+
                     if (!hasAnyArtifacts) {
                       return (
                         <div className="text-center text-zinc-500 py-8">
@@ -550,7 +562,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   } else if (artifactsTab === 'session') {
                     const currentArtifacts = artifacts;
                     const hasAnyArtifacts = Object.values(currentArtifacts).some(arr => arr.length > 0);
-                    
+
                     if (!hasAnyArtifacts) {
                       return (
                         <div className="text-center text-zinc-500 py-8">
@@ -619,7 +631,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
                   } else {
                     // Individual artifact type tabs (studyPlans, notes, progress, memory)
                     const artifactList = artifacts[artifactsTab as keyof ArtifactsData] || [];
-                    
+
                     if (artifactList.length === 0) {
                       return (
                         <div className="text-center text-zinc-500 py-8">
@@ -644,7 +656,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({ isCollapsed, onT
         isOpen={confirmationDialog?.isOpen || false}
         title={confirmationDialog?.title || ''}
         message={confirmationDialog?.message || ''}
-        onConfirm={confirmationDialog?.onConfirm || (() => {})}
+        onConfirm={confirmationDialog?.onConfirm || (() => { })}
         onCancel={() => setConfirmationDialog(null)}
       />
     </div>

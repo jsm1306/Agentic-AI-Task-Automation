@@ -1,11 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Settings, Moon, Sun, RotateCcw, Trash2, BarChart3, Download } from 'lucide-react';
 
 export const SettingsDrawer: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -22,9 +28,9 @@ export const SettingsDrawer: React.FC = () => {
         <Settings className="w-5 h-5" />
       </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-black/80 backdrop-blur-md border border-cyan-500/30 rounded-lg p-6 w-96 max-w-[90vw]">
+      {mounted && isOpen && createPortal(
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
+          <div className="bg-black/80 backdrop-blur-md border border-cyan-500/30 rounded-lg p-6 w-96 max-w-[90vw] shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-white">Settings</h2>
               <button
@@ -80,7 +86,8 @@ export const SettingsDrawer: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

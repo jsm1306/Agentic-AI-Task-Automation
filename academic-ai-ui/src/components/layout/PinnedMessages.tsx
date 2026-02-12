@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pin, X } from 'lucide-react';
 import { ChatMessage } from '../../lib/api';
+import { toLocaleTime } from '../../lib/dates';
 
 interface PinnedMessagesProps {
   messages: ChatMessage[];
@@ -24,7 +25,7 @@ export const PinnedMessages: React.FC<PinnedMessagesProps> = ({ messages, onUnpi
           >
             <div className="flex-1 min-w-0">
               <div className="text-sm text-zinc-200 truncate">{message.content}</div>
-              <div className="text-xs text-zinc-400">{new Date(message.timestamp).toLocaleTimeString()}</div>
+              <div className="text-xs text-zinc-400">{toLocaleTime(message.timestamp) || message.timestamp || ''}</div>
             </div>
             <button
               onClick={() => onUnpin(message.id || index.toString())}

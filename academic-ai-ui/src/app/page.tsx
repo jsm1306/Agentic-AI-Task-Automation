@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { TopBar } from '../components/layout/TopBar';
 import { MainPlayground } from '../components/layout/MainPlayground';
 import { UnifiedSidebar } from '../components/layout/UnifiedSidebar';
-import { ChatSession } from '../lib/api';
+import { ChatSession, apiClient } from '../lib/api';
 
 export default function Home() {
   const [sidebarWidth, setSidebarWidth] = useState(320);
@@ -65,6 +65,25 @@ export default function Home() {
     setArtifactsRefreshTrigger(prev => prev + 1);
   };
 
+  const handleSessionSelect = async (session: ChatSession | null) => {
+    if (!session) {
+      setCurrentSession(null);
+      return;
+    }
+
+    // Set basic session info immediately
+    setCurrentSession(session);
+
+    try {
+      // Fetch full details including messages
+      const fullSession = await apiClient.getSession(session.id);
+      setCurrentSession(fullSession);
+    } catch (error) {
+      console.error('Failed to load session details:', error);
+      // Keep basic session info but maybe show error toast
+    }
+  };
+
   return (
     <div className="h-screen bg-black text-white overflow-hidden relative" ref={containerRef}>
       <TopBar />
@@ -74,15 +93,14 @@ export default function Home() {
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebarCollapse}
             currentSession={currentSession}
-            onSessionSelect={setCurrentSession}
+            onSessionSelect={handleSessionSelect}
             artifactsRefreshTrigger={artifactsRefreshTrigger}
           />
         </div>
         {/* Resizable divider */}
         <div
-          className={`relative w-1 bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent shadow-[0_0_10px_rgba(0,255,255,0.3)] cursor-col-resize hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-200 group ${
-            isDragging ? 'shadow-[0_0_20px_rgba(0,255,255,0.8)]' : ''
-          }`}
+          className={`relative w-1 bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent shadow-[0_0_10px_rgba(0,255,255,0.3)] cursor-col-resize hover:shadow-[0_0_15px_rgba(0,255,255,0.5)] transition-all duration-200 group ${isDragging ? 'shadow-[0_0_20px_rgba(0,255,255,0.8)]' : ''
+            }`}
           onMouseDown={handleMouseDown}
         >
           <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-0.5 bg-cyan-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>

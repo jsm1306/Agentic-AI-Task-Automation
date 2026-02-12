@@ -1,6 +1,7 @@
 import React from 'react';
 import { MessageSquare, Trash2 } from 'lucide-react';
 import { ChatSession as ChatSessionType } from '../../lib/api';
+import { parseToDate } from '../../lib/dates';
 
 interface ChatSessionProps extends ChatSessionType {
   onClick?: () => void;
@@ -10,7 +11,8 @@ interface ChatSessionProps extends ChatSessionType {
 
 export const ChatSession: React.FC<ChatSessionProps> = ({ title, created_at, onClick, onDelete, isActive = false }) => {
   const formatTimestamp = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = parseToDate(dateString) || new Date(dateString);
+    if (!date || isNaN(date.getTime())) return '';
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));

@@ -1,0 +1,12 @@
+[
+  {
+    "role": "user",
+    "content": "create notes on ssd very short",
+    "timestamp": "2026-02-12T10:29:02.803695+05:30"
+  },
+  {
+    "role": "assistant",
+    "content": "Notes created: SSD Basics.\nContent: A Solid State Drive (SSD) is a non-volatile storage device that uses solid-state flash memory to store persistent data. Unlike HDDs, SSDs have no moving parts, making them faster, more durable, and less prone to mechanical failure. They improve boot times, application loading, and overall system responsiveness.",
+    "timestamp": "2026-02-12T10:29:02.803695+05:30"
+  }
+]

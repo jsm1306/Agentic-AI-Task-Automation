@@ -11,9 +11,11 @@ import json
 
 try:
     from .logger import AgentLogger
+    from .utils import now_iso, ist_now, ensure_ist_iso
 except ImportError:
     # Handle case when run as standalone script
     from logger import AgentLogger
+    from utils import now_iso, ist_now, ensure_ist_iso
 
 class FileStorage:
     """File-based storage with thread-safe operations"""
@@ -41,6 +43,20 @@ class FileStorage:
         # Initialize memory file if it doesn't exist
         if not self.memory_file.exists():
             self._write_json(self.memory_file, {"subjects": {}, "global_memory": {}})
+
+    def ensure_subject_folder(self, subject: str) -> Path:
+        """Create and return the folder path for a subject under subjects/.
+
+        Subject folder name is sanitized by removing spaces.
+        Creates subfolders 'extracted' and 'uploads'.
+        """
+        safe_name = subject.replace(" ", "") if subject else "General"
+        subject_dir = self.subjects_path / safe_name
+        extracted_dir = subject_dir / "extracted"
+        uploads_dir = subject_dir / "uploads"
+        extracted_dir.mkdir(parents=True, exist_ok=True)
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+        return subject_dir
 
     def _write_json(self, file_path: Path, data: Any):
         """Thread-safe JSON write"""
@@ -76,16 +92,33 @@ class FileStorage:
             # Load messages from separate file if they exist
             messages_file = self.base_path / f"{session_id}_messages.json"
             messages = self._read_json(messages_file) or []
+            # Normalize timestamps to IST iso format
+            for m in messages:
+                if "timestamp" in m:
+                    m["timestamp"] = now_iso() if not m["timestamp"] else ensure_ist_iso(m["timestamp"])
             session_data["messages"] = messages
+            # Normalize session created_at if present
+            if "created_at" in session_data:
+                session_data["created_at"] = ensure_ist_iso(session_data["created_at"])
         return session_data
 
     def get_all_sessions(self) -> List[Dict[str, Any]]:
-        """Get all sessions"""
+        """Get all sessions (normalized timestamps)"""
         sessions = []
         if self.sessions_path.exists():
             for session_file in self.sessions_path.glob("*.json"):
                 session_data = self._read_json(session_file)
                 if session_data:
+                    # Normalize created_at
+                    if "created_at" in session_data:
+                        session_data["created_at"] = ensure_ist_iso(session_data["created_at"])
+                    # Normalize messages timestamps
+                    messages_file = self.base_path / f"{session_data['id']}_messages.json"
+                    messages = self._read_json(messages_file) or []
+                    for m in messages:
+                        if "timestamp" in m:
+                            m["timestamp"] = ensure_ist_iso(m["timestamp"])
+                    session_data["messages"] = messages
                     sessions.append(session_data)
         return sorted(sessions, key=lambda x: x.get("created_at", ""), reverse=True)
 
@@ -156,10 +189,10 @@ class FileStorage:
         session_data = self.get_session(session_id)
         if session_data:
             notes_entry = {
-                "id": f"note_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "id": f"note_{ist_now().strftime('%Y%m%d_%H%M%S')}",
                 "title": title,
                 "content": content,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": now_iso(),
                 "session_id": session_id
             }
 
@@ -185,9 +218,9 @@ class FileStorage:
         session_data = self.get_session(session_id)
         if session_data:
             progress_entry = {
-                "id": f"progress_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "id": f"progress_{ist_now().strftime('%Y%m%d_%H%M%S')}",
                 "content": progress_text,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": now_iso(),
                 "session_id": session_id
             }
 
@@ -207,8 +240,8 @@ class FileStorage:
         session_data = self.get_session(session_id)
         if session_data:
             plan_entry = {
-                "id": f"plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                "timestamp": datetime.now().isoformat(),
+                "id": f"plan_{ist_now().strftime('%Y%m%d_%H%M%S')}",
+                "timestamp": now_iso(),
                 "session_id": session_id,
                 **plan_data
             }
@@ -241,7 +274,7 @@ class FileStorage:
         current_memory["subjects"][subject] = {
             **current_memory["subjects"].get(subject, {}),
             **memory_data,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": now_iso()
         }
 
         self._write_json(self.memory_file, current_memory)
@@ -261,7 +294,7 @@ class FileStorage:
         current_memory["global_memory"] = {
             **current_memory.get("global_memory", {}),
             **memory_data,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": now_iso()
         }
 
         self._write_json(self.memory_file, current_memory)

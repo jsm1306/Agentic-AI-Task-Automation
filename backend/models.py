@@ -18,6 +18,7 @@ class ChatResponse(BaseModel):
     response: str
     timestamp: str
     agent_actions: List[Dict[str, Any]] = Field(default_factory=list)
+    artifact: Optional[str] = Field(None, description="Generated artifact content, such as notes")
 
 class SessionCreate(BaseModel):
     """Request model for creating a new session"""

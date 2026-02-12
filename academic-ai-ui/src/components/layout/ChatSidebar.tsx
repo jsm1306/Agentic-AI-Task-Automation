@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, MessageSquare, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { ChatSession as ChatSessionComponent } from '../ui/ChatSession';
 import { ChatSession } from '../../lib/api';
+import { parseToDate } from '../../lib/dates';
 
 const mockSessions: ChatSession[] = [
   { 
@@ -54,12 +55,12 @@ const groupSessions = (sessions: ChatSession[]) => {
   const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   return {
-    today: sessions.filter(s => new Date(s.created_at) >= today),
+    today: sessions.filter(s => (parseToDate(s.created_at) || new Date(s.created_at)) >= today),
     thisWeek: sessions.filter(s => {
-      const date = new Date(s.created_at);
+      const date = parseToDate(s.created_at) || new Date(s.created_at);
       return date >= weekAgo && date < today;
     }),
-    older: sessions.filter(s => new Date(s.created_at) < weekAgo)
+    older: sessions.filter(s => (parseToDate(s.created_at) || new Date(s.created_at)) < weekAgo)
   };
 };
 

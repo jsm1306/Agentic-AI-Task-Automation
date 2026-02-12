@@ -3,7 +3,7 @@ Autonomous Academic AI Assistant Backend
 FastAPI application with CrewAI integration for academic assistance
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -16,6 +16,7 @@ from pathlib import Path
 import asyncio
 import os
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 
 # Load environment variables
 load_dotenv()
@@ -30,6 +31,7 @@ try:
     from .storage import FileStorage
     from .cache import SimpleCache
     from .logger import AgentLogger
+    from .utils import now_iso, ist_now
 except ImportError:
     # Handle case when run as standalone script
     from agents import get_academic_agent, create_task_for_message
@@ -40,12 +42,22 @@ except ImportError:
     from storage import FileStorage
     from cache import SimpleCache
     from logger import AgentLogger
+    from utils import now_iso, ist_now
 
 # Initialize FastAPI app
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize the application"""
+    # Ensure data directories exist
+    storage.ensure_directories()
+    logger.info("Academic AI Assistant backend started")
+    yield
+
 app = FastAPI(
     title="Academic AI Assistant API",
     description="Autonomous Academic AI Assistant with CrewAI integration",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Configure CORS
@@ -88,13 +100,6 @@ if MOCK_MODE:
 else:
     logger.info("Running with API keys - Full AI functionality enabled")
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize the application"""
-    # Ensure data directories exist
-    storage.ensure_directories()
-    logger.info("Academic AI Assistant backend started")
-
 @app.get("/")
 async def root():
     """Health check endpoint"""
@@ -105,7 +110,7 @@ async def health_check():
     """Detailed health check"""
     return {
         "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": now_iso(),
         "mode": "mock" if MOCK_MODE else "full_ai",
         "components": {
             "storage": "ready",
@@ -135,10 +140,10 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
             mock_response = {
                 "session_id": request.session_id,
                 "response": f"I understand you want to discuss: '{request.message}'. This is a mock response since no API keys are configured. Please set up your GEMINI_API_KEY in the .env file to enable full AI functionality.",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": now_iso(),
                 "agent_actions": [
                     {
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": now_iso(),
                         "action": "MOCK_RESPONSE",
                         "details": {"message": "Mock AI response generated"}
                     }
@@ -182,9 +187,19 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
         response_data = {
             "session_id": request.session_id,
             "response": str(result),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": now_iso(),
             "agent_actions": logger.get_recent_actions(request.session_id)
         }
+
+        # Check for generated artifacts (notes)
+        artifact = None
+        for action in reversed(response_data["agent_actions"]):
+            if action.get("action") == "CONTENT_GENERATED" and action.get("details", {}).get("type") == "notes":
+                artifact = action["details"]["content"]
+                break
+
+        if artifact:
+            response_data["artifact"] = artifact
 
         # Cache the response
         cache.set(cache_key, response_data, ttl=3600)  # Cache for 1 hour
@@ -215,16 +230,35 @@ async def get_sessions():
         logger.error(f"Get sessions error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve sessions")
 
+@app.get("/session/{session_id}", response_model=SessionResponse)
+async def get_session(session_id: str):
+    """Get a specific chat session by ID"""
+    try:
+        if not storage.session_exists(session_id):
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        session = storage.get_session(session_id)
+        return SessionResponse(**session)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get session error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve session")
+
 @app.post("/session", response_model=SessionResponse)
 async def create_session(request: SessionCreate):
     """Create a new chat session"""
     try:
+        # Make sure subject folder exists (create on first-seen subjects)
+        storage.ensure_subject_folder(request.subject)
+
         session_id = str(uuid.uuid4())
         session_data = {
             "id": session_id,
-            "title": request.title or f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            "title": request.title or f"Session {ist_now().strftime('%Y-%m-%d %H:%M')}",
             "subject": request.subject,
-            "created_at": datetime.now().isoformat(),
+            "created_at": now_iso(),
             "messages": [],
             "artifacts": {
                 "study_plans": [],
@@ -243,12 +277,53 @@ async def create_session(request: SessionCreate):
         logger.error(f"Create session error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create session")
 
+
+@app.post("/subjects/{subject}/upload")
+async def upload_subject_files(subject: str, files: List[UploadFile] = None):
+    """Upload one or more PDF/DOC/DOCX files for a subject.
+
+    - Validates allowed extensions (.pdf, .doc, .docx).
+    - Saves files under backend/subjects/<SubjectName>/uploads/.
+    - Returns list of saved filenames or 400 if invalid file types are provided.
+    """
+    try:
+        allowed = {".pdf", ".doc", ".docx"}
+        subject_dir = storage.ensure_subject_folder(subject)
+        uploads_dir = subject_dir / "uploads"
+        saved_files = []
+
+        if not files:
+            raise HTTPException(status_code=400, detail="No files uploaded")
+
+        for upload in files:
+            filename = upload.filename
+            ext = Path(filename).suffix.lower()
+            if ext not in allowed:
+                raise HTTPException(status_code=400, detail="Only PDF and DOC/DOCX files are accepted. Please upload a PDF or DOC/DOCX file.")
+
+            dest = uploads_dir / filename
+            with open(dest, 'wb') as f:
+                content = await upload.read()
+                f.write(content)
+            saved_files.append(dest.name)
+            logger.content_generated("system", "uploads", f"Saved {dest.name} for subject {subject}")
+
+        return {"message": "Files uploaded successfully", "files": saved_files}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Upload subject files error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload files")
+
 @app.delete("/session/{session_id}")
 async def delete_session(session_id: str):
     """Delete a chat session and all its data"""
     try:
+        # If session doesn't exist, consider it already deleted (success)
         if not storage.session_exists(session_id):
-            raise HTTPException(status_code=404, detail="Session not found")
+            logger.info(f"Session {session_id} not found (already deleted or never existed)")
+            return {"message": "Session deleted successfully"}
 
         success = storage.delete_session(session_id)
         if not success:

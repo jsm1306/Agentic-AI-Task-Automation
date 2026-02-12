@@ -1,7 +1,7 @@
 // Academic AI Assistant API Client
 // Handles communication between frontend and backend
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://agentic-ai-task-automation-backend.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
 
 export interface ChatSession {
   id: string;
@@ -24,6 +24,7 @@ export interface ChatMessage {
   timestamp: string;
   tools?: string[];
   pinned?: boolean;
+  artifact?: string;
 }
 
 export interface ChatRequest {
@@ -37,6 +38,7 @@ export interface ChatResponse {
   response: string;
   timestamp: string;
   agent_actions: AgentAction[];
+  artifact?: string;
 }
 
 export interface AgentAction {
@@ -99,6 +101,10 @@ class ApiClient {
     return this.request<ChatSession[]>('/sessions');
   }
 
+  async getSession(sessionId: string): Promise<ChatSession> {
+    return this.request<ChatSession>(`/session/${sessionId}`);
+  }
+
   async createSession(data: CreateSessionRequest): Promise<ChatSession> {
     return this.request<ChatSession>('/session', {
       method: 'POST',
@@ -131,7 +137,19 @@ class ApiClient {
       body: JSON.stringify({ sessionId, title, content }),
     });
   }
-
+  async uploadSubjectFile(subject: string, file: File): Promise<{ message: string; files: string[] }> {
+    const fd = new FormData();
+    fd.append('files', file);
+    const res = await fetch(`${API_BASE_URL}/subjects/${encodeURIComponent(subject)}/upload`, {
+      method: 'POST',
+      body: fd,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Upload failed' }));
+      throw new Error(`API Error: ${res.status} - ${JSON.stringify(err)}`);
+    }
+    return res.json();
+  }
   async updateProgress(sessionId: string, progressText: string) {
     return this.request('/update-progress', {
       method: 'POST',

@@ -6,7 +6,10 @@ Tracks agent activities for frontend display and debugging
 import json
 import threading
 from typing import List, Dict, Any
-from datetime import datetime
+try:
+    from .utils import now_iso, ist_now
+except ImportError:
+    from utils import now_iso, ist_now
 from collections import defaultdict
 from pathlib import Path
 
@@ -24,7 +27,7 @@ class AgentLogger:
         """Log an agent action"""
         with self._lock:
             action_entry = {
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": now_iso(),
                 "action": action,
                 "details": details or {},
                 "session_id": session_id
@@ -95,10 +98,15 @@ class AgentLogger:
 
     def content_generated(self, session_id: str, content_type: str, content: str):
         """Log content generation"""
-        self.log_action(session_id, "CONTENT_GENERATED", {
+        details = {
             "type": content_type,
-            "content_preview": content[:100] + "..." if len(content) > 100 else content
-        })
+        }
+        if content_type == "notes":
+            details["content"] = content  # Store full content for notes
+        else:
+            details["content_preview"] = content[:100] + "..." if len(content) > 100 else content
+        
+        self.log_action(session_id, "CONTENT_GENERATED", details)
 
     def search_performed(self, session_id: str, query: str, results_count: int = 0):
         """Log search operations"""

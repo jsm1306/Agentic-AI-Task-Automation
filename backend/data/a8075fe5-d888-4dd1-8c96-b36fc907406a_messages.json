@@ -1,0 +1,12 @@
+[
+  {
+    "role": "user",
+    "content": "hi",
+    "timestamp": "2026-02-12T14:59:15.854773+05:30"
+  },
+  {
+    "role": "assistant",
+    "content": "Hello! I'm your academic assistant specializing in Object Detection. How can I help you today with your studies?",
+    "timestamp": "2026-02-12T14:59:15.854773+05:30"
+  }
+]
