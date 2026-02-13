@@ -15,10 +15,6 @@ This project demonstrates a complete autonomous AI agent system with:
 
 ---
 
-## 🌐 Live Deployment
-
-🚀 **Live Demo:**
-https://agentic-ai-task-automation.onrender.com/
 
 ### Deployment Architecture
 
